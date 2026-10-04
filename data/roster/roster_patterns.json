@@ -1,0 +1,1337 @@
+{
+ "_comment": "入口模式库：每校每院的探路结论，累积给后续轮次起步提示（非解析模板，现场验证为准）。由主会话统一维护，子代理只读不写。来源：各校子代理 probe.md/报告搬运。",
+ "西北工业大学": {
+  "updated": "2026-09-30",
+  "domain_notes": "全校 CMS 同源(博思/vsb)但模板互异；大写 <A> 标签存在，正则必须 re.I",
+  "blocked_sources": [
+   "teacher.nwpu.edu.cn / jszy.nwpu.edu.cn：全站 412（JS cookie WAF），研究生院/研招网教师主页均指向它，L2 富字段降级链见 pitfalls.md",
+   "研招目录页为整页 JPG，下轮用多模态图像分析捞回（工具已验证）"
+  ],
+  "colleges": {
+   "计算机学院": {
+    "entry": "jsj.nwpu.edu.cn/snew/szdw/szmd.htm",
+    "form": "单页大表按系分区",
+    "notes": "330KB，仅姓名+主页链接，无职称"
+   },
+   "自动化学院": {
+    "entry": "zdhxy.nwpu.edu.cn/szdw/jsdw/jsdw/*.htm",
+    "form": "按系 6 页",
+    "notes": ""
+   },
+   "软件学院": {
+    "entry": "ruanjian.nwpu.edu.cn/szdw/jsdw.htm",
+    "form": "单页全量",
+    "notes": "链接文本'姓名 职称'；含外籍教师"
+   },
+   "电子信息学院": {
+    "entry": "dianzi.nwpu.edu.cn/x2020/szdw1/szll/*.htm",
+    "form": "按系 6 页",
+    "notes": "职称在链接外 <p> 邻接；剔除博士后栏目"
+   },
+   "网络空间安全学院": {
+    "entry": "wlkjaqxy.nwpu.edu.cn/English/Faculty.htm",
+    "form": "单页照片墙",
+    "notes": "中文站师资正文为空！英文页拼音名，覆盖率约 4 成，32 人未恢复中文名（待人工补）"
+   },
+   "人工智能学院": {
+    "entry": "soai.nwpu.edu.cn/szdw/jsml/zgjjs.htm",
+    "form": "按职称 3 栏+倒序分页",
+    "notes": "翻页必须跟'下页'链接（倒序编号）；链接文本含研究方向"
+   },
+   "光电与智能研究院(iOPEN)": {
+    "entry": "iopen.nwpu.edu.cn/szdw/js.htm",
+    "form": "按职称 3 页+导师名单页",
+    "notes": "不在官网院系列表（科研平台）；2 人仅见于导师名单页"
+   }
+  }
+ },
+ "清华大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "裸域常无 A 记录（thss/insc 需加 www. 前缀）；全站静态 HTML 无 WAF",
+  "colleges": {
+   "计算机科学与技术系": {
+    "entry": "www.cs.tsinghua.edu.cn/szzk/jzgml.htm",
+    "form": "单页照片墙×研究所×职称层级",
+    "notes": "职称/邮箱齐；剔除实验技术人员"
+   },
+   "电子工程系": {
+    "entry": "www.ee.tsinghua.edu.cn/ryqk/teacher/xxgdzyjs/js2.htm",
+    "form": "页内 JS 变量 qh_data×22 组",
+    "notes": "grep showTitle 定位+raw_decode；自带方向/邮箱/主页；过滤占位脏数据"
+   },
+   "自动化系": {
+    "entry": "www.au.tsinghua.edu.cn/szdw/jsdw1/ayjscz/",
+    "form": "按研究所 7 页照片墙",
+    "notes": "无结构化职称；字母检索页是空壳 JS 不可用"
+   },
+   "软件学院": {
+    "entry": "www.thss.tsinghua.edu.cn/szdw/jsml.htm",
+    "form": "单页按研究所分组",
+    "notes": "职称靠详情页补"
+   },
+   "交叉信息研究院": {
+    "entry": "iiis.tsinghua.edu.cn/rydw.htm",
+    "form": "单页分组",
+    "notes": "剔除荣誉客座/兼职/博士后/行政"
+   },
+   "人工智能学院": {
+    "entry": "collegeai.tsinghua.edu.cn/rydw.htm",
+    "form": "单页（全职PI+兼聘PI）",
+    "notes": "2024 新设；兼聘 PI 按主页域名归属回原院系（AI_HOME_MAP）；链接带'转换链接错误'标记"
+   },
+   "智能产业研究院(AIR)": {
+    "entry": "air.tsinghua.edu.cn/airtd/yjtd.htm",
+    "form": "团队页分组",
+    "notes": "剔除访问教授/科研工程师；href 带前导空格"
+   },
+   "网络科学与网络空间研究院": {
+    "entry": "www.insc.tsinghua.edu.cn/szdw_/jsml.htm",
+    "form": "单页富文本按职称分组",
+    "notes": "含双聘标注，荣休剔除"
+   }
+  },
+  "excluded": "集成电路（芯片）、深圳国际研究生院（异地校区，待下轮）"
+ },
+ "北京大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "域名勿猜，从母站院系列表提取；ai.pku.edu.cn 是实验室站非学院",
+  "colleges": {
+   "计算机学院": {
+    "entry": "cs.pku.edu.cn/szdw/jyxl/amz/ALL.htm",
+    "form": "vsb 照片墙卡片，倒序分页 11 页",
+    "notes": "字段全（职称/研究所/领域/邮箱）；@为图片占位需还原"
+   },
+   "智能学院": {
+    "entry": "sai.pku.edu.cn/szdw/zzjs.htm",
+    "form": "vsb 卡片 5 页",
+    "notes": "intelligent. 子域不通，真域名 sai"
+   },
+   "电子学院": {
+    "entry": "ele.pku.edu.cn/szdw/zzjs.htm",
+    "form": "vsb 列表 6 页",
+    "notes": "无邮箱；title 含博导/硕导注记"
+   },
+   "集成电路学院": {
+    "entry": "ic.pku.edu.cn/szdw/zzjs/",
+    "form": "Gpower CMS 5 子系页",
+    "notes": "JS 壳页需跟 window.location.href；邮箱整段被 HTML 注释"
+   },
+   "软件与微电子学院": {
+    "entry": "ss.pku.edu.cn/sztd/",
+    "form": "Gpower 纯姓名列表 4 栏目",
+    "notes": "招生名录性质（含跨院与企业导师）；qygcbssz=全日制工程博士"
+   },
+   "王选计算机研究所": {
+    "entry": "www.icst.pku.edu.cn/xstd/xstd_01/index.htm",
+    "form": "单页全量",
+    "notes": "需 www 前缀；邮箱 (at) 形态"
+   },
+   "信息工程学院(深研院)": {
+    "entry": "www.ece.pku.edu.cn/szdw/js1.htm",
+    "form": "vsb 卡片 7 页",
+    "notes": "兼职教师页正文空，名单未发布（已知缺失）"
+   },
+   "科学智能学院(深研院)": {
+    "entry": "ai4s.pkusz.edu.cn/szdw/zzjs/ALL.htm",
+    "form": "vsb 卡片",
+    "notes": "邮箱 at / dot 形态；杰出人才栏是在职子集需去重"
+   }
+  }
+ },
+ "哈尔滨工业大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "院系域名无规律（电信=seie.hit.edu.cn）；主站院系目录 JS 渲染；homepage.hit.edu.cn 教师主页系统可直访（下轮富字段源）；本报告仅哈尔滨本部，深圳/威海/郑州/重庆/苏州研究院待补",
+  "colleges": {
+   "计算学部(博导/硕导/教师名录)": {
+    "entry": "cs.hit.edu.cn/22195/list.htm 等",
+    "form": "sudy CMS 静态大表按学科/学院分区",
+    "notes": "title 属性是 sudy 占位符（静默漏抓坑），真名在 textvalue；h1 在 table 外先切段；ivpn 主页链接转公开域名；教师名录页是院系归属权威（修正 160 处）"
+   },
+   "人工智能学院": {
+    "entry": "sai.hit.edu.cn/zrjs/list.htm",
+    "form": "富字段表",
+    "notes": "2024 从计算学部拆分；跨学科导师表(sai/kxkyjsds)297 人须按归属部门过滤深圳/威海校区"
+   },
+   "电子与信息工程学院": {
+    "entry": "seie.hit.edu.cn/19281-19285/list.htm",
+    "form": "sudy news 列表 5 系页",
+    "notes": "无职称字段；anchor 引号混用"
+   },
+   "航天学院(博导)": {
+    "entry": "sa.hit.edu.cn/21463/list.htm",
+    "form": "静态单页按学科分块 361 人",
+    "notes": "△=资深/**=？/◇=外籍兼职前缀剥离；控制学科在此"
+   },
+   "人工智能研究院": {
+    "entry": "ai.hit.edu.cn/12789/list.htm",
+    "form": "news 列表 14 人",
+    "notes": "与 AI 学院大量双聘"
+   }
+  },
+  "excluded": "电气工程及自动化学院（电气主体，控制已由航天覆盖）；深圳/威海校区（待补，评价库含'哈尔滨工业大学(深圳)'档案）"
+ },
+ "国防科技大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "军校无公开学院站（子域 DNS 全不存在）；主源=博士招生简章 PDF 附件（分学院全量表格）；评价库军队院校条目为 0（首轮基线）；信息通信学院 campus=武汉（简章实证）；2027 预发：信通退出博士序列、新增 89 人",
+  "colleges": {
+   "_5学院概览": {
+    "entry": "研招简章 PDF（2025/2026/2027 三版）",
+    "form": "pdfplumber 表格还原+文件级状态机",
+    "notes": "423 条（现行有效 374）；计算机122/电子科学129/智能科学83/系统工程75/信通14"
+   }
+  }
+ },
+ "西安交通大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "三次重派断点收口（fetch failed 双杀后第三棒完成）；7 学院页脚全实证兴庆（研培主体已迁创新港但名录未按人标注不臆标）；微电子学院按口径排除；网安 59 人约 20 人与三院双列（双聘如实保留）",
+  "colleges": {
+   "_7学院概览": {
+    "entry": "电子科学与工程171/信通114/自动化67/计算机84/网安59/AI56/软件48",
+    "form": "vsb 多形态（数字分页无'下页'文字坑/聚合预览坑/折叠子栏坑）",
+    "notes": "599 人；邮箱仅计算机卡片页有"
+   }
+  }
+ },
+ "西北农林科技大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "29 个学院部所中仅信工纳入（机电学院实证排除：4/5 系机械学科，评价库机电条目实为农机背景）；双域名 cie.nwsuaf(老)/cie.nwafu(新)统一映射新域；'队伍概况'页当完整性基准（125 专任，职称 22/22 精确闭合）",
+  "colleges": {
+   "信息工程学院": {
+    "entry": "cie.nwafu.edu.cn",
+    "form": "5 栏目+135 详情页（含 14 空壳骨架页）",
+    "notes": "135 人；campus=杨凌北校区（页脚实证）"
+   }
+  }
+ },
+ "重庆大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "五学院+人事处全站 412 瑞数——主源改 yz.cqu.edu.cn 研招网分学院导师库+faculty.cqu TSITES（双白名单完全替代）；TSITES 邮箱 tsitesencrypt.jsp 可 API 还原（187/322 到手）；软件学院已更名大数据与软件学院",
+  "colleges": {
+   "_5学院概览": {
+    "entry": "计算机85/微电子与通信95/光电98/自动化60/大数据与软件42",
+    "form": "研招网+TSITES 降级链",
+    "notes": "campus 全部虎溪（页脚+118 条个人办公地点双实证）"
+   }
+  },
+  "sidecars": "tsites_only_teachers.json（67 名 TSITES 在册非招生导师）；高热度 unverified 逐人核实（文俊浩19评现任党委书记仍在编等）"
+ },
+ "四川大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "cs/sw 双域名全站瑞数 WAF（202+空body）不可直访——降级链：faculty.scu TSITES（无 WAF 按学院 id 直查）+ yz.scu 研招 API + web_reader；cs 双址办学（望江/江安）不臆标；滕欢≈邓欢同音字待人工",
+  "colleges": {
+   "计算机学院(软件/智能科学合署)": {
+    "entry": "WAF 封锁，三源降级链",
+    "form": "TSITES 166 + 研招目录 31 + 官网首屏 2",
+    "notes": "198 人"
+   },
+   "电子信息学院": {
+    "entry": "eie.scu.edu.cn",
+    "form": "vsb 六职称栏目同页聚合（防 6 倍重复）",
+    "notes": "97 人"
+   },
+   "网络空间安全学院": {
+    "entry": "网安学院站",
+    "form": "学院站",
+    "notes": "50 人；campus=江安"
+   },
+   "电气工程学院(仅自动化系)": {
+    "entry": "电气站",
+    "form": "仅控制学科编制 37 人（电力 113 排除 sidecar）",
+    "notes": "按天大/湖大先例"
+   },
+   "人工智能学院": {
+    "entry": "AI 学院站",
+    "form": "领军/青年栏为教授子集去重",
+    "notes": "28 人"
+   }
+  }
+ },
+ "华中科技大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "faculty.hust（jszy 同款）可直访但个人信息区三态；历史名'电子与信息工程系'→信通、'自动化学院'→AI 与自动化已映射；光学与电子信息学院（58 条评价最大户）范围外建议下轮专题",
+  "colleges": {
+   "计算机科学与技术学院": {
+    "entry": "cs.hust.edu.cn",
+    "form": "学院站",
+    "notes": "154 vs 自述149 ✓"
+   },
+   "人工智能与自动化学院": {
+    "entry": "aia.hust.edu.cn",
+    "form": "学院站",
+    "notes": "126 vs 123 ✓"
+   },
+   "集成电路学院": {
+    "entry": "ic.hust.edu.cn",
+    "form": "学院站（校外域名链接坑）",
+    "notes": "120 vs 113 ✓"
+   },
+   "电子信息与通信学院": {
+    "entry": "ei.hust.edu.cn",
+    "form": "学院站",
+    "notes": "104 vs 115 缺 11（如实记录）"
+   },
+   "网络空间安全学院": {
+    "entry": "cse.hust.edu.cn",
+    "form": "学院站",
+    "notes": "56 人；campus=网安基地（入驻协议实证）"
+   },
+   "软件学院": {
+    "entry": "sse.hust.edu.cn",
+    "form": "简介页导航含讲师栏（首页导航不全坑）",
+    "notes": "37 vs 39 缺 2"
+   }
+  }
+ },
+ "华南理工大学": {
+  "updated": "2026-09-30",
+  "domain_notes": "微电子学院与集成电路学院同站同牌；吴贤铭智能工程学院（国际校区实体）；官网名录普遍坍缩，yanzhao.scut.edu.cn 研究生导师库是救命第二来源（2027 硕士层+博士层均已闭合：博士层学院筛选 POST 静默失效但未过滤全量列表可得）；ExpertInfo.aspx?zjbh= 详情页含研究领域/科研项目等13节+Email+个人主页（方向画像主源，76% 填充 topic 级）",
+  "colleges": {
+   "计算机科学与工程学院": {
+    "entry": "cs.scut.edu.cn",
+    "form": "Sudy WP（三 tab 同页坑）",
+    "notes": "78 人；campus=大学城"
+   },
+   "软件学院": {
+    "entry": "sse.scut.edu.cn",
+    "form": "Sudy WP",
+    "notes": "41 人；campus=大学城"
+   },
+   "未来技术学院": {
+    "entry": "ft.scut.edu.cn",
+    "form": "全职 25+兼岗 19 条",
+    "notes": "campus=广州国际校区"
+   },
+   "自动化科学与工程学院": {
+    "entry": "auto.scut.edu.cn（官网坍缩 42）",
+    "form": "yanzhao 导师库补 26",
+    "notes": "67 人；campus=五山"
+   },
+   "电子与信息学院": {
+    "entry": "ee.scut.edu.cn（官网坍缩 23！）",
+    "form": "yanzhao 导师库补 66",
+    "notes": "90 人；campus=五山"
+   },
+   "微电子学院(集成电路同牌)": {
+    "entry": "官网坍缩 35",
+    "form": "yanzhao 补 21",
+    "notes": "58 人；campus=国际校区"
+   },
+   "吴贤铭智能工程学院": {
+    "entry": "补充纳入",
+    "form": "学院站",
+    "notes": "25 人；campus=国际校区"
+   }
+  },
+  "known_gaps": "博士层已闭合（2026-09-30 画像轮：未过滤列表 199 唯一人）；2 人拼音待人工（XUZHENG/YiannisVardaxoglou 外籍）；曾超 homepage yanzhaoadmin 502 待站方修复；4 学院名录无邮箱字段（ExpertInfo 详情页可补 Email）"
+ },
+ "中山大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "campus 反直觉铁律：软件工程学院在珠海、网安学院在深圳（页脚实证）；Drupal 平台（单页多视图/slug 语义互换陷阱）；AI 研究院直属机构 163 人（81 跨院双聘）",
+  "colleges": {
+   "_11单元概览": {
+    "entry": "计算机109(广州东)/软件38(珠海)/AI学院30(珠海)/电子与通信59(深圳)/电信85(广州东)/网安31(深圳)/智能工程75(深圳)/系统科学27(广州南)/集成电路27(深圳,自标持续更新中缺口)/微电子32(珠海)/AI研究院163(广州南)",
+    "form": "Drupal views 多形态",
+    "notes": "campus 四地分布全实证；邮箱 408/676"
+   },
+   "_detail_layer_note": "sece/ssse/seit 的纯文本名单实为 vsb 详情层索引（画像轮 59/59、27/27 href 全量存在）——勿按纯文本处理"
+  }
+ },
+ "武汉大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "人工智能研究院已实体化为人工智能学院（官方现行院名）；jszy 教师主页系统无 WAF 可直访（富字段可用，邮箱哈希加密）；href 多态坑重灾区",
+  "colleges": {
+   "计算机学院": {
+    "entry": "cs.whu.edu.cn 专任教师页",
+    "form": "系×职称档单页（href 多态）",
+    "notes": "162 人；按卡片结构锚定"
+   },
+   "国家网络安全学院": {
+    "entry": "cse.whu.edu.cn",
+    "form": "系编制+交叉学科研究中心",
+    "notes": "76 人；campus 信息学部/网安基地（页脚双址）"
+   },
+   "电子信息学院": {
+    "entry": "电子信息学院站",
+    "form": "名录",
+    "notes": "99 人；5 名 # 死链保留"
+   },
+   "人工智能学院": {
+    "entry": "武大 AI 学院站",
+    "form": "学院站",
+    "notes": "34 人；79 双聘 sidecar"
+   },
+   "测绘遥感信息工程全国重点实验室": {
+    "entry": "LIESMAR 站",
+    "form": "133 卡片+11 高层次人才页补",
+    "notes": "137 人；campus=信息学部"
+   }
+  },
+  "sidecars": "whu_cross_appointments.json（26 跨单位）+ 兼职/双聘/博后 3 个"
+ },
+ "湖南大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "无现名'信息科学与工程学院'（历史名已拆分）；计算机/软件/保密四牌合署；电气仅取电子系+仪器系（电力五系 145 人按天大先例排除）；未来技术学院无官网（缺口）；李澄清 13 条评价高热度缺席待核",
+  "colleges": {
+   "计算机学院(软件/保密合署)": {
+    "entry": "cs.hnu.edu.cn 等",
+    "form": "多站合署一单元",
+    "notes": "189 人"
+   },
+   "人工智能与机器人学院": {
+    "entry": "hnu AI 机器人学院站",
+    "form": "学院站",
+    "notes": "78 人；控制学科整体调入（dept_shift 4 人）"
+   },
+   "集成电路学院": {
+    "entry": "sic.hnu.edu.cn",
+    "form": "可见⊂隐藏双层结构",
+    "notes": "45 人；display:none 藏全量、可见块藏兼职"
+   },
+   "电气与信息工程学院": {
+    "entry": "eeit.hnu.edu.cn",
+    "form": "仅电子+仪器系",
+    "notes": "46 人；'1|2|3'是图片轮播坑"
+   },
+   "网络空间安全学院": {
+    "entry": "hnu 网安站",
+    "form": "学院站",
+    "notes": "29 人"
+   }
+  },
+  "sidecar": "cross_hire_sidecar.json（23 兼职/外校）"
+ },
+ "厦门大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "母站工程技术学部列表为权威范围源；'信息科学与技术学院'已拆为信息学院四系+电子科学与技术学院（dept_shift 5 人沿革）；faculty.xmu TSITES 翻页未破解（全校 1252 仅取 110，待人工）；137 个站方死链置 null 留痕",
+  "colleges": {
+   "电子科学与技术学院": {
+    "entry": "ese.xmu.edu.cn",
+    "form": "职称子栏目（column id 各异+teacherInfo 混排）+2027 导师 xlsx（带 Referer 下载）",
+    "notes": "103 人；campus=翔安"
+   },
+   "信息学院": {
+    "entry": "inform.xmu.edu.cn 四系+总表",
+    "form": "计算机 57/信通 47/软件 36（Word 粘贴）/AI 30（含双聘张钹）/未分系 7",
+    "notes": "campus=翔安；TSITIES 总表 150 人服务端直出"
+   },
+   "人工智能研究院": {
+    "entry": "iai.xmu.edu.cn",
+    "form": "独立 PI 11 + 12 并入各系打 tag",
+    "notes": "campus=unknown 跨单位"
+   }
+  }
+ },
+ "山东大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "多校区标杆案例：济南 653/青岛 363/威海 166；AI 学院 2024 新设在济南（浪潮共建，非青岛）；威海低空学院=旧'机电与信息工程学院'换牌（2025-08，师资藏 display:none ul）；第二来源 faculty.sdu TSITES 13 学院 collegeid 全枚举（pagesize 假完备坑）",
+  "colleges": {
+   "_13单元概览": {
+    "entry": "计算机121/AI38/软件165/控制210/信科189/网安53/密码4/集成电路119/未来技术79/AI国际联合研究院11/智能创新研究院16/智能通信研究院11/低空学院(威海)166",
+    "form": "多形态",
+    "notes": "cse/cst/cfair 三站官网名录缺失全靠 TSITES 补"
+   }
+  },
+  "vsb_notes": "列表页导航词全在 centerCutImg.js 之前（rfind 切片法）"
+ },
+ "中国海洋大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "真域名 it.（sie.=国际教育学院）；人工智能学院为虚拟跨聘建制（95 人 cross_appointment，仅 2026 版学部简介可见，靠简介反推 /ai/ 子站）；旧名'信息科学与工程学院'已拆学部",
+  "colleges": {
+   "信息科学与工程学部(主源)": {
+    "entry": "it.ouc.edu.cn 学部 teacherHome API（siteId=381, rows=999）",
+    "form": "Sudy 隐藏 API 一次抓全 318 条",
+    "notes": "字段映射 address=职称/exField1=学院（与 NJU 异义已重验）；同人草稿双记录合并；占位值过滤"
+   },
+   "计算机科学与技术学院": {
+    "entry": "学部内单元",
+    "form": "API 归属",
+    "notes": "97 人"
+   },
+   "物理与光电工程学院": {
+    "entry": "学部内单元",
+    "form": "API 归属",
+    "notes": "74 人"
+   },
+   "电子工程学院": {
+    "entry": "学部内单元",
+    "form": "API 归属",
+    "notes": "70 人"
+   },
+   "海洋技术学院": {
+    "entry": "学部内单元",
+    "form": "API 归属",
+    "notes": "54 人"
+   },
+   "工业互联网研究院": {
+    "entry": "学部内单元",
+    "form": "API 归属",
+    "notes": "7 人"
+   }
+  },
+  "campus_notes": "默认崂山（页脚实证），1 人西海岸（个人详情页实证）；职称空 78 人系教师未填（已实证放弃二遍）"
+ },
+ "东南大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "三域名一站三牌：软件/AI 学院域名与计算机学院同站同内容（md5 相同）；智能科学与工程学院 2025-12 无锡揭牌无官网名录（覆盖缺口）；cyber 三职称 URL 返回同页聚合",
+  "colleges": {
+   "计算机科学与工程学院(软件/AI 同站)": {
+    "entry": "cse.seu.edu.cn",
+    "form": "名录+注释剥离",
+    "notes": "131 人；博后仅 class=ry-bsh 区分；兼聘 28 人 sidecar"
+   },
+   "信息科学与工程学院": {
+    "entry": "radio.seu.edu.cn",
+    "form": "12 职称子栏空壳、父学科页预览=全量",
+    "notes": "232 人；campus=四牌楼（页脚）"
+   },
+   "网络空间安全学院": {
+    "entry": "cyber.seu.edu.cn",
+    "form": "职称分组",
+    "notes": "76 人；2017 组建（10 人旧院系迁移 dept_shift）"
+   },
+   "仪器科学与工程学院": {
+    "entry": "仪科院站（师资栏目树空！）",
+    "form": "名录藏'研究所介绍'7 篇文章纯文本",
+    "notes": "68 人；campus=unknown"
+   }
+  }
+ },
+ "南京大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "苏州校区'错位发展'：智能科学与技术/机器人与自动化/智能软件与工程三院在苏州，AI/软件/电子实际在南京（逐院页脚实证）；is 站与 ese 站 wp3 API 字段异义（exField2 语义漂移）",
+  "colleges": {
+   "计算机学院": {
+    "entry": "cs.nju.edu.cn 聚合页",
+    "form": "238 条静态 9 分组",
+    "notes": "125 人（剔离退休 86/行政 14/专技 6/博后系 11）；title 属性带括号注记坑"
+   },
+   "电子科学与工程学院": {
+    "entry": "ese.nju.edu.cn",
+    "form": "全院名录+学硕导师隐藏 API 双源并集",
+    "notes": "142 人"
+   },
+   "智能科学与技术学院": {
+    "entry": "is.nju.edu.cn（空壳站）",
+    "form": "generalQuery teacherHome siteId=786",
+    "notes": "58 人；campus=苏州"
+   },
+   "软件学院": {
+    "entry": "软件学院站",
+    "form": "sudy boshan 静态表格",
+    "notes": "47 人；campus=鼓楼（页脚实证）"
+   },
+   "人工智能学院": {
+    "entry": "ai.nju.edu.cn",
+    "form": "教职工名录静态",
+    "notes": "33 人（剔'（博士）'特任系 5）"
+   },
+   "机器人与自动化学院": {
+    "entry": "苏州校区站",
+    "form": "静态卡片（nav 藏 header.js）",
+    "notes": "27 人；campus=苏州"
+   },
+   "智能软件与工程学院": {
+    "entry": "苏州校区站",
+    "form": "Word 粘贴表格",
+    "notes": "12 人；campus=苏州"
+   }
+  },
+  "excluded": "集成电路学院（73 人 cache 可复用）；未来技术学院（JS 壳 0 人）；信息管理学院（iSchool 口径）"
+ },
+ "上海交通大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "2025-02 电院拆四学院（软件撤销并入计算机，网安/密码合署计算机）；AI 学院 2024-11 实体化（sai.，校直属不进学部目录）；旧研究院 ai.sjtu.edu.cn 存活但名录坍缩 1 人（勿用）；faculty.sjtu TSITES 空壳不可用（逐校实测）",
+  "colleges": {
+   "计算机学院(网安/密码/软件/JH中心合署)": {
+    "entry": "cs.sjtu.edu.cn",
+    "form": "ajax_teacher_list + 详情",
+    "notes": "290 人；详情职称 div.zw"
+   },
+   "自动化与感知学院": {
+    "entry": "sais.sjtu.edu.cn",
+    "form": "同 ajax 接口但详情模板不同（tit>p+span）",
+    "notes": "206 人"
+   },
+   "集成电路学院(信息与电子工程学院)": {
+    "entry": "icisee.sjtu.edu.cn",
+    "form": "按研究所过滤（中文键碰撞坑）",
+    "notes": "103 人通信/AI 系所；职称在 detail 首 p"
+   },
+   "人工智能学院": {
+    "entry": "sai.sjtu.edu.cn",
+    "form": "新实体学院",
+    "notes": "46 人（卢策吾/严骏驰/张娅等，靠知名教授缺席反推捞回）"
+   }
+  }
+ },
+ "吉林大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "控制科学与工程系（吉大自动化）确认在通信工程学院内；软件学院名录未发布（共享计算机/数学师资，按合署先例依托 ccst）；无 WAF",
+  "colleges": {
+   "计算机科学与技术学院": {
+    "entry": "ccst.jlu.edu.cn",
+    "form": "首页 3 栏+内页侧栏 8 子栏目（折叠坑）",
+    "notes": "205 人；自述 198 名录相符"
+   },
+   "人工智能学院": {
+    "entry": "sai.jlu.edu.cn",
+    "form": "专职+兼职分列",
+    "notes": "33 专职+16 兼职"
+   },
+   "电子科学与工程学院(集成电路，一站两牌)": {
+    "entry": "ee.jlu.edu.cn",
+    "form": "职称分组纯文本（顺序标记替换法）",
+    "notes": "160 人；死链 12/834"
+   },
+   "通信工程学院": {
+    "entry": "dce.jlu.edu.cn",
+    "form": "含控制系 37 人",
+    "notes": "117 人；campus=南湖（页脚证据）"
+   },
+   "软件学院": {
+    "entry": "-",
+    "form": "名录未发布",
+    "notes": "共享 ccst 师资，0 条"
+   }
+  },
+  "teacher_platform": {
+   "host": "teachers.jlu.edu.cn",
+   "type": "TSITES 家族",
+   "census": "/system/resource/tsites/advancesearch.jsp?collegeid=&teacherName=&pagesize=100（2201 人 23 页，无 WAF）",
+   "notes": "自注册制覆盖低（画像轮 91 缺口仅 9 人在册、方向命中 1）；census teacherName 为模糊检索须精确比对 name；URL 教师代码在倒数第三段（zh_CN 前段）；画像轮 2026-10-01 实测",
+   "found_in": "方向画像轮（名录轮 probe 只测了 faculty./teacher. 双 000——平台域名是复数 teachers）"
+  }
+ },
+ "华东师范大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "通信与电子工程学院已更名重组为信息与电子工程学院（集成电路），老域名 cec 已死；2024-25 新设 AI 学院群（空间AI/智能交互/AI金融/智能教育研究院）；faculty.ecnu.edu.cn（Sudy teacherHome 平台 46 部门）= 全校第二来源（siteId=collegeId 调用）",
+  "colleges": {
+   "计算机科学与技术学院": {
+    "entry": "cs.ecnu.edu.cn/jzgml/list.htm",
+    "form": "静态卡片单页（data-name 职称档）",
+    "notes": "102 人；8 人'（兼）'后缀兼聘；EdwinSha=沙行勉"
+   },
+   "软件工程学院": {
+    "entry": "sei.ecnu.edu.cn 三视图",
+    "form": "分组锚点名单+博导富字段表",
+    "notes": "104 人；何积丰院士仍在册如实收录"
+   },
+   "数据科学与工程学院": {
+    "entry": "dase.ecnu.edu.cn/jzgml",
+    "form": "静态卡片 5 页（**主栏目仅数据学科建设部！**）",
+    "notes": "78 人；其余 42 人在 faculty 系统（第五防线实证）"
+   },
+   "信息与电子工程学院(集成电路)": {
+    "entry": "ieeic.ecnu.edu.cn 专任教师=articles API",
+    "form": "Sudy articles 富字段+纯文本导师名录",
+    "notes": "152 人；[AT] 邮箱形态；导师名录提供博/硕导标注"
+   },
+   "密码学院": {
+    "entry": "sc.ecnu.edu.cn/50350",
+    "form": "静态分组单页",
+    "notes": "18 人；页面自标'未完待续'；5 人与软件双列"
+   },
+   "空间人工智能学院": {
+    "entry": "geoai.ecnu.edu.cn/48311",
+    "form": "静态卡片 2 页",
+    "notes": "20 人；兼聘 10 人附录 geoai_cross_hire.json"
+   },
+   "智能交互学院": {
+    "entry": "sii.ecnu.edu.cn（articles API columnId=53791）",
+    "form": "新站名录未发布",
+    "notes": "仅 2 条，覆盖缺口（11 团队页兼聘线索）"
+   },
+   "上海人工智能金融学院": {
+    "entry": "saifs.ecnu.edu.cn/szdw",
+    "form": "静态单页",
+    "notes": "5 人"
+   },
+   "上海智能教育研究院": {
+    "entry": "无独立域名（DNS 均不通），faculty collegeId=47",
+    "form": "teacherHome API",
+    "notes": "15 人（姓名+主页）"
+   }
+  }
+ },
+ "同济大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "2024 计算机系从电信学院拆出+与软件学院合并建新站 cs；老站 sse 停更但 13 名教授仅存老站（双站双向 diff）；计算机/软件 campus=嘉定，科学中心 campus=张江",
+  "colleges": {
+   "电子与信息工程学院": {
+    "entry": "see.tongji.edu.cn",
+    "form": "职称分组",
+    "notes": "178 人（教授76/副教授77/讲师25）；现结构不含计算机系（2024 拆出）"
+   },
+   "计算机科学与技术学院(软件学院)": {
+    "entry": "cs.tongji.edu.cn + 老站 sse 双站",
+    "form": "新站 138 + 老站独有 13 待核",
+    "notes": "151 人"
+   },
+   "上海自主智能无人系统科学中心": {
+    "entry": "srias 同济相关页",
+    "form": "全国重点实验室博导纯文本（更新中）",
+    "notes": "组页纯文本博导名单实为详情页索引（/cNNNNaXXX/page.htm 124/124 有链）——画像轮 97 人直达 topic，勿再按纯文本处理"
+   },
+   "工程智能研究院": {
+    "entry": "同济相关站",
+    "form": "研究院",
+    "notes": "8 人"
+   }
+  },
+  "excluded": "测绘（任务规定）；电气/CAD/CIMS（SEE 已覆盖）；国豪书院（无独立编制）"
+ },
+ "南开大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "cc（计算机）与 cyber（密码与网安）双站双编制共享师资（79/110 双列，dual_site 标记）；backend 子域 WAF（12 人详情缺口）；campus 全部津南",
+  "colleges": {
+   "电子信息与光学工程学院": {
+    "entry": "南开电光站",
+    "form": "学院站",
+    "notes": "135 人"
+   },
+   "计算机学院": {
+    "entry": "cc.nankai.edu.cn",
+    "form": "双站之一（职称系列栏目）",
+    "notes": "83 人"
+   },
+   "人工智能学院": {
+    "entry": "ai.nankai.edu.cn",
+    "form": "学院站",
+    "notes": "69 人"
+   },
+   "软件学院": {
+    "entry": "南开软件站",
+    "form": "学院站",
+    "notes": "32 人"
+   },
+   "密码与网络空间安全学院": {
+    "entry": "cyber.nankai.edu.cn",
+    "form": "双站之一（博/硕导系列栏目）",
+    "notes": "24 人"
+   }
+  }
+ },
+ "东北大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "官网无'人工智能学院'（任务书名），实体是人工智能与大数据研究院（官网名录未发布，用门户两个 AI 平台 12 人补）；秦皇岛校区（东秦）独立招生单列；龙亿/马晓光 campus=佛山（注记）",
+  "colleges": {
+   "信息科学与工程学院": {
+    "entry": "ise.neu.edu.cn",
+    "form": "学院站",
+    "notes": "224 人；完整性验证 名录215 vs 自述218 ✓；同名不同人两对（去重四元组）"
+   },
+   "计算机科学与工程学院": {
+    "entry": "cse.neu.edu.cn",
+    "form": "学院站（名录栏目是空壳，图片均为装饰）",
+    "notes": "153 人；152 vs 自述148 ✓"
+   },
+   "软件学院": {
+    "entry": "rse.neu.edu.cn",
+    "form": "侧栏锚点与分组头同文案坑",
+    "notes": "70 人；RSE 兼职外部导师 18 人（沈自所/新松）排除"
+   },
+   "机器人科学与工程学院": {
+    "entry": "机器人学院站",
+    "form": "学院站",
+    "notes": "28 人"
+   },
+   "工业智能与系统优化前沿科学中心": {
+    "entry": "门户直属",
+    "form": "平台",
+    "notes": "8 人"
+   },
+   "人工智能与大数据科学中心": {
+    "entry": "门户直属",
+    "form": "平台",
+    "notes": "4 人（跨聘 3 归学院）"
+   },
+   "未来技术学院": {
+    "entry": "-",
+    "form": "空壳",
+    "notes": "3 人；官网名录未发布，覆盖缺口"
+   }
+  },
+  "cross_source": "faculty.neu.edu.cn（TSITES）advancesearch.jsp 隐藏 API——全校第二来源（271 人富字段）"
+ },
+ "大连理工大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "电子信息与电气工程学部已拆分为电气/信通/控制/计算机/集成电路独立学院；权威机构列表在 institution.dlut.edu.cn（非母站组织机构页）；未来技术学院是虚拟学院（39 名 AI/CS 兼聘归编制学院，仅 15 名自编教师收录）；软件学院 campus=开发区",
+  "colleges": {
+   "计算机学院": {
+    "entry": "dlut 计算机站",
+    "form": "学院站",
+    "notes": "81 人"
+   },
+   "控制科学与工程学院": {
+    "entry": "dlut 控制站",
+    "form": "学院站",
+    "notes": "127 人"
+   },
+   "软件学院(含立命馆)": {
+    "entry": "software.dlut.edu.cn",
+    "form": "学院站",
+    "notes": "99 人；campus=开发区"
+   },
+   "信息与通信工程学院": {
+    "entry": "dlut 信通站",
+    "form": "学院站",
+    "notes": "60 人"
+   },
+   "电气工程学院": {
+    "entry": "dlut 电气站",
+    "form": "学院站",
+    "notes": "69 人"
+   },
+   "集成电路学院": {
+    "entry": "dlut 集成电路站",
+    "form": "学院站",
+    "notes": "31 人"
+   },
+   "人工智能学院": {
+    "entry": "dlut AI 站",
+    "form": "学院站",
+    "notes": "16 人"
+   },
+   "未来技术学院": {
+    "entry": "dlut 未来技术站",
+    "form": "虚拟学院",
+    "notes": "仅 15 名自编教师；企业导师 30 人排除"
+   }
+  },
+  "cross_source": "faculty.dlut.edu.cn（tsites）列表接口 xyjslb.jsp?...CollegeTeacherList&id={id}&PAGENUM={n} 每页 12 条——交叉源取并集（双源交叉 361 人）"
+ },
+ "天津大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "学部制：智算学部一体四院（北洋园）；faculty.tju 主页系统仅少数人开通（只作 homepage 补充）；母站学院列表是图片卡（名称在 img alt）",
+  "colleges": {
+   "智能与计算学部": {
+    "entry": "cic.tju.edu.cn",
+    "form": "学部一体（计算机/软件/AI/网安等）",
+    "notes": "172 人；导师名录页博导⊂硕导（按人名去重）"
+   },
+   "电气自动化与信息工程学院": {
+    "entry": "tju 电气自动化信工学院站",
+    "form": "系所分页",
+    "notes": "140 人（自动化 64/通信 38/电信 26/中心 12）；vsb 标签拆散天大变体（label 词枚举修复）"
+   },
+   "微电子学院": {
+    "entry": "tju 微电子站",
+    "form": "多栏目并集",
+    "notes": "60 人；'教师队伍'栏仅 12 人不全！全量在'导师风采'栏目（倒序 5 页）"
+   }
+  },
+  "excluded": "电气工程系 88 人（电力学科，参照 HIT 先例）"
+ },
+ "北京航空航天大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "36 人跨院双列（真实双聘）；母站院系列表不含软件学院（独立学院）；7 学院页脚均学院路主校区（campus null）",
+  "colleges": {
+   "自动化科学与电气工程学院": {
+    "entry": "buaa 自动化学院站",
+    "form": "职称档",
+    "notes": "207 人"
+   },
+   "电子信息工程学院": {
+    "entry": "buaa 电子信息站",
+    "form": "卡片（class 带 wow fadeInUp 后缀，须前缀匹配）",
+    "notes": "195 人；评价库最大户 72 条"
+   },
+   "网络空间安全学院": {
+    "entry": "cst.buaa.edu.cn",
+    "form": "卡片",
+    "notes": "83 人；字段较全"
+   },
+   "计算机学院": {
+    "entry": "buaa 计算机站",
+    "form": "列表",
+    "notes": "81 人（页面自证 81 条）"
+   },
+   "人工智能研究院": {
+    "entry": "buaa AI 研究院站",
+    "form": "列表",
+    "notes": "63 人"
+   },
+   "软件学院": {
+    "entry": "独立学院站",
+    "form": "列表",
+    "notes": "53 人；母站院系列表不含"
+   },
+   "集成电路科学与工程学院": {
+    "entry": "ic.buaa.edu.cn",
+    "form": "**WAF 全站 483**",
+    "notes": "部分成功：降级链取得教授层 28 人，副教授 29+助理 8 缺失待补（首轮应一次抓全栏目清单）"
+   }
+  },
+  "blocked_sources": [
+   "shi/teacher.buaa.edu.cn：校园网限定域伪装 200（69 字节提示页），条目保留标注即可"
+  ]
+ },
+ "北京理工大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "信电真域名 sie（sice=国际教育学院）；grd.bit.edu.cn/dsdw/bssds 培养单位卡片页=名录入口金矿（26 单位，但不含新设 AI 学院）；软件学院已并入计算机学院；集成电路 2023 从信电拆出；三校区名录未按人标注（campus null 未臆标）",
+  "colleges": {
+   "信息与电子学院": {
+    "entry": "sie.bit.edu.cn",
+    "form": "12 研究所×职称档",
+    "notes": "189 人"
+   },
+   "自动化学院": {
+    "entry": "ac.bit.edu.cn",
+    "form": "博导+硕导分学科+前沿交叉科学院",
+    "notes": "154 人；dsmd/sssds 栏目首页是预览页（真名单在子栏目，从'更多'链接提取）"
+   },
+   "计算机学院": {
+    "entry": "cs.bit.edu.cn",
+    "form": "博导/硕导",
+    "notes": "151 人；无 href 空锚点坑+页脚链接同构坑"
+   },
+   "集成电路与电子学院": {
+    "entry": "sie 集成电路相关站",
+    "form": "职称档",
+    "notes": "105 人；2023 拆出；剔博士后 2"
+   },
+   "网络空间安全学院": {
+    "entry": "cst.bit.edu.cn",
+    "form": "字段最全",
+    "notes": "61 人"
+   },
+   "人工智能学院": {
+    "entry": "ai.bit.edu.cn（母站英文 School 列表交叉确认）",
+    "form": "30 卡中 15 跨院兼聘",
+    "notes": "2025 新设；兼聘归原学院去重（ai_cross_appointment.json 存映射）"
+   }
+  }
+ },
+ "中央民族大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "人工智能研究院 2026-04 新设与信工合署（ai.muc.edu.cn 空壳勿硬抓）；h5 职称档'博导/硕导'标注可作导师身份判定源",
+  "colleges": {
+   "信息工程学院": {
+    "entry": "iec.muc.edu.cn",
+    "form": "卡片名录+79 详情页二遍",
+    "notes": "计算机系30+电信系20+公共计算机教学部8+基础实验中心9；邮箱字符级拆散坑；campus=海淀"
+   }
+  },
+  "excluded": "国家安全研究院（政策学科，CS 仅跨聘）；理学院/海南国际学院"
+ },
+ "浙江大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "2025-07 新设人工智能学院 ai.zju.edu.cn（不进母站院系目录，靠'知名教授集体失踪'反推）；名录页普遍不全，须第二来源交叉（导师资格 xlsx）",
+  "colleges": {
+   "计算机科学与技术学院": {
+    "entry": "cs.zju.edu.cn",
+    "form": "名录页+导师资格 xlsx 交叉",
+    "notes": "名录页仅 139 人（不全！），xlsx 补 102 人；sudy _redirect 须不跟随读 Location"
+   },
+   "信息与电子工程学院": {
+    "entry": "isee.zju.edu.cn",
+    "form": "富字段页",
+    "notes": "职称/邮箱/主页全"
+   },
+   "控制科学与工程学院": {
+    "entry": "cse.zju.edu.cn（控制）",
+    "form": "108 详情页二遍",
+    "notes": "107 有职称"
+   },
+   "软件学院": {
+    "entry": "sse.zju.edu.cn",
+    "form": "Excel 粘贴表格",
+    "notes": "campus=宁波"
+   },
+   "人工智能学院": {
+    "entry": "ai.zju.edu.cn",
+    "form": "新站",
+    "notes": "2025-07 新设，人工智能+设计学"
+   }
+  },
+  "excluded": "海宁 ZJUI/上海高等研究院（待下轮）；115 名 0854 企业导师单列 external_prof_supervisors.json"
+ },
+ "中国人民大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "2019 年信息学院分设高瓴 AI 学院（文继荣/赵鑫等 5 人随迁，dept_shift 语义）",
+  "colleges": {
+   "高瓴人工智能学院": {
+    "entry": "ai.ruc.edu.cn/szdw/zrjs/",
+    "form": "单页 30 卡+详情二遍",
+    "notes": "字段全；邮箱有 AT 花括号展开形态"
+   },
+   "信息学院": {
+    "entry": "info.ruc.edu.cn 师资（四级壳页链）",
+    "form": "壳页链至'按教学机构查询'5 页×20 卡",
+    "notes": "计算机系 56+经济信息管理系 24+信息技术基础教研室 5；'不限'视图混荣退须按 /rtjs/ 路径排除"
+   }
+  },
+  "excluded": "数学/统计/智慧治理学院及异地研究院（范围外）"
+ },
+ "北京师范大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "北师无独立计算机学院（CS 整体在人工智能学院内）；AI 与未来网络研究院挂珠海文理学院、母站学院列表不可见；复杂系统国际科学中心 zkgyy.bnu.edu.cn DNS 不解析（待补）",
+  "colleges": {
+   "人工智能学院": {
+    "entry": "ai.bnu.edu.cn 师资页",
+    "form": "职称分组卡片",
+    "notes": "字段标签词被内联 span 拆散（需换行合并文本层）；含'派驻珠海校区'注记转 campus；研招导师名录 4 文 54 人可交叉补 supervisor_flag"
+   },
+   "系统科学学院": {
+    "entry": "sss.bnu.edu.cn",
+    "form": "专职教师单页",
+    "notes": "注意页脚公共邮箱冒充教师邮箱（值白名单+最早匹配）"
+   },
+   "人工智能与未来网络研究院(珠海)": {
+    "entry": "珠海校区站",
+    "form": "列表",
+    "notes": "13 人，campus=珠海"
+   }
+  },
+  "excluded": "网络法治与发展中心（人员挂法学院）；未来技术学院（实为环境工程方向）"
+ },
+ "中国科学技术大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "信息科学技术学院无自有名录（由 EEIS+自动化系覆盖）；AGI 研究所全站校内限定 403；人形机器人研究院无独立官网；兼职/外聘 31 人按口径排除",
+  "colleges": {
+   "计算机学院": {
+    "entry": "cs.ustc.edu.cn 师资页",
+    "form": "学院站点",
+    "notes": "101 人；兼职 9 人排除"
+   },
+   "电子工程与信息科学系": {
+    "entry": "eeis.ustc.edu.cn",
+    "form": "系站",
+    "notes": "112 人"
+   },
+   "自动化系": {
+    "entry": "auto.ustc.edu.cn",
+    "form": "Sudy WP，注意假分页（list1/2/3 内容相同）",
+    "notes": "116 人"
+   },
+   "人工智能与数据科学学院": {
+    "entry": "SAIDS 站",
+    "form": "学院站",
+    "notes": "26 人；兼职 5 人排除"
+   },
+   "网络空间安全学院": {
+    "entry": "cybersec.ustc.edu.cn",
+    "form": "分组标题带 style 属性",
+    "notes": "44 人；外聘博导 17 人排除（曾静默并入副高）"
+   },
+   "微电子学院": {
+    "entry": "me.ustc.edu.cn（微电子）",
+    "form": "学院站",
+    "notes": "51 人"
+   },
+   "软件学院": {
+    "entry": "sse.ustc.edu.cn",
+    "form": "学院站",
+    "notes": "25 人；合肥/苏州双址办学但名录未按人标注（campus 待人工细分）"
+   }
+  }
+ },
+ "中南大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "faculty.csu.edu.cn 教师主页可直访无 WAF（264 人有 homepage，email/方向可二遍补）；母站院系列表无软件学院（已并入计算机学院为软件工程系）",
+  "colleges": {
+   "计算机学院": {
+    "entry": "csu.edu.cn 计算机学院师资页",
+    "form": "vsb 单页全量，教师锚点带 char 属性",
+    "notes": "含软件工程系 25 人；筛选选项与教师锚点混排需 char 区分"
+   },
+   "自动化学院": {
+    "entry": "csu.edu.cn 自动化学院师资页",
+    "form": "vsb 同款模板",
+    "notes": "117 人"
+   },
+   "电子信息学院": {
+    "entry": "csu.edu.cn 电子信息学院师资页",
+    "form": "vsb 同款模板",
+    "notes": "存在无 href 教师锚点，正则须容错"
+   },
+   "大数据研究院": {
+    "entry": "bdi.csu.edu.cn",
+    "form": "交叉挂靠",
+    "notes": "与计算机学院 12 人重叠去重，6 人独有"
+   }
+  },
+  "excluded": "物理与电子学院（名含电子实属物理学科，评价库 17 条不参与 CS 族 join）",
+  "profile_round": {
+   "date": "2026-09-30",
+   "homepage_rich_fields": "faculty.csu.edu.cn index.htm 服务端直出：<h2>研究方向</h2> 块 / META keywords / 简介（三层抽取梯子命中 105/89/37，另 text_pat 8）",
+   "search_api": "/system/resource/tsites/advancesearch.jsp?collegeid=&pageindex=1&pagesize=100&teacherName=X&viewid=382942&siteOwner=1252142266&showlang=zh_CN —— 精确比对 name 字段；portal 搜索框是逐字模糊不可用",
+   "yjgk_note": "yjgk 子页方向常\"暂无内容\"，但含\"学科：X\"字段可作 discipline 级兜底",
+   "dead": "bioinformatics.csu.edu.cn 整站 502（李敏）",
+   "result": "300 人方向覆盖 91.7%（topic 263/discipline 12），详见 data/profile/csu_report.md"
+  }
+ },
+ "复旦大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "2024-25 院系大重组：计算机+软件→计算与智能创新学院(ai.)；信科→拆未来信息创新(fit.)+微电子并入 icmne；老站 sme 仍在线（重叠仅 47%，独有 53 人待核）",
+  "colleges": {
+   "计算与智能创新学院": {
+    "entry": "ai.fudan.edu.cn/53161/list.htm",
+    "form": "Sudy WP 空壳，走隐藏 API /_wp3services/generalQuery?queryObj=teacherHome (siteId=577, rows=999)",
+    "notes": "教职工名录含非导师（95 人无职称档）；两个张凯同名不同人（去重键含 homepage）"
+   },
+   "大数据学院": {
+    "entry": "sds.fudan.edu.cn/17415/list.htm",
+    "form": "静态表格 h4+p",
+    "notes": "子栏目 17428/17429 补职称；简介含研究方向可抽"
+   },
+   "未来信息创新学院": {
+    "entry": "fit.fudan.edu.cn/Data/List/adw",
+    "form": ".NET 按教研室分组单页",
+    "notes": "三视图陷阱：按职称版仅 27 人不全，用按单位版 194；167 人职称待详情页二遍补"
+   },
+   "集成电路与微纳电子创新学院": {
+    "entry": "icmne.fudan.edu.cn/apy/list.htm",
+    "form": "Sudy WP，隐藏 API queryObj=articles (siteId=1074, columnId=48925)",
+    "notes": "字段最全；老站 sme 补充 53 人待核"
+   },
+   "智能机器人与先进制造创新学院": {
+    "entry": "ciram.fudan.edu.cn/cslm/list.htm",
+    "form": "Sudy WP，隐藏 API (siteId=1083, columnId=50802, scope=0)",
+    "notes": "过滤 shortTitle=党政管理 16 人；含子单位字段"
+   },
+   "类脑智能科学研究院": {
+    "entry": "istbi.fudan.edu.cn/ry/gdkyry_aszmpysx_.htm",
+    "form": "vsb 倒序分页",
+    "notes": "相对路径深度逐页变化必须 urljoin；剔除博士后/工程师"
+   }
+  }
+ },
+ "电子科技大学": {
+  "_probe": "2026-10-01",
+  "campus": {
+   "清水河": [
+    "01信通",
+    "02电子科学",
+    "06自动化",
+    "08计算机(网安)",
+    "21基础前沿",
+    "22抗干扰",
+    "90智能计算"
+   ],
+   "沙河": [
+    "09信息与软件(页脚实证:沙河主楼中230)"
+   ],
+   "深圳": [
+    "28深圳高等研究院"
+   ]
+  },
+  "main_source": {
+   "name": "研究生招生网导师风采库(权威主源,全校2808导师服务端直出)",
+   "url": "https://yjsjy.uestc.edu.cn/gmis/jcsjgl/dsfc",
+   "form": "单页全量按学院分组(td id=学院码 class=yx_class),导师代码+姓名锚点直链详情",
+   "detail": "/gmis/jcsjgl/dsfc/dsgrjj/{code}?yxsh={学院码},字段:职称/特称/属性(专职兼职)/学位/邮箱(三段span拼接)/研究方向表(专业+方向+招生层次)",
+   "college_codes": {
+    "01": "信通",
+    "02": "电子科学",
+    "06": "自动化",
+    "08": "计算机(网安)",
+    "09": "信软",
+    "21": "基础前沿",
+    "22": "抗干扰实验室",
+    "28": "深圳高等研究院",
+    "90": "智能计算研究院"
+   }
+  },
+  "cross_source": {
+   "tsites": "faculty.uestc.edu.cn 无WAF, /system/resource/tsites/advancesearch.jsp?collegeid={2031计算机/2030信软/2033自动化/2037电子/2038信通/2018基础前沿/2017抗干扰}&pagesize=100,totalnum校验; 智能计算/深圳无TSITES条目; 英才实验(未来技术)仅1人=无独立师资"
+  },
+  "waf": "学院官网 7/9 被WAF: scse/auto/ese/yingcai/sias=202瑞数, sise/icct=412(wengine); 仅 sice.uestc.edu.cn 可直抓(页脚取campus)",
+  "pitfalls": [
+   "研招导师库服务端直出全量,单页1.2MB含2808锚点,一次抓全免翻页",
+   "邮箱三段<span>拼接需join",
+   "140导师跨院招生(主01/02教师挂28深圳),保留双记录campus随学院",
+   "集成电路31/光电05按纯硬件排除",
+   "iffS21按CS族学科过滤(数理主体)",
+   "人工智能研究院=虚体平台无独立名录,四川省人工智能学院挂靠计算机学院"
+  ]
+ },
+ "兰州大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "唯一 AI/CS 建制=信息科学与工程学院（无独立 AI/计算机学院实证）；主站群瑞数 412，唯一通道 webkit 服务端渲染（合法执行 JS 挑战）；**webReader 摘要层伪造名录高危坑在此发现并击退（raw/verification_log.txt）**",
+  "colleges": {
+   "信息科学与工程学院": {
+    "entry": "xxxy.lzu.edu.cn（WAF）",
+    "form": "webkit 渲染通道",
+    "notes": "115 人（教授39/副教授57/讲师15/青年研究员4）；campus=城关；homepage 全 null（渲染通道丢 href 下轮浏览器补）"
+   }
+  }
+ },
+ "中国农业大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "无独立 AI/计算机学院（AI 编制=信电的人工智能系+数据科学与工程系）；工学院/水利与智能工程学院按口径排除；在册导师捕获率 100%（官方博导过滤 API 终检）",
+  "colleges": {
+   "信息与电气工程学院": {
+    "entry": "ciee.cau.edu.cn（导航在 iframe 栏目页！）",
+    "form": "系页 date1 属性分组 × faculty.cau 隐藏 API cauTeachers（department like 过滤）× 135 详情页",
+    "notes": "121 人；8 系级单位；campus=东校区双实证；unverified 7 人全部荣退页实证"
+   }
+  }
+ },
+ "_tsites_census_spectrum": "TSITES census 字段集光谱（画像轮实测）：NEU 全有方向字段 / HUST jszy 残缺 / USTC+BUAA 仅索引（无方向无院系）/ DLUT 全空 / XMU 翻页需 ispreview 小写——画像轮首测 1 页字段集即定路线",
+ "西安电子科技大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "faculty.xidian TSITES census 2525 人 26 页可用（advancesearch 全参数依赖：从 queryData() 抄全）；yjszs 研招库 DNS 000 不可达；网安/杭州/集成电路官网坍缩走 TSITES 补口；ISN 为校园网限定；信息力学新学院在北校区（反直觉）",
+  "colleges": {
+   "_13单元": "计算机168/AI75/网安88/通信198/电子334/微电子156/信息交叉21/信息力学37/广州113/杭州54/ISN29/雷达3/雷达探测74"
+  }
+ },
+ "南京邮电大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "研究生院导师库 yjs 无 WAF（queryDsxm 4 类并集 census 1512 + 967 详情服务端直出，0 错误）；专硕领域标签伪装学院名坑；兼职 118 人 sidecar（方滨兴/沈昌祥等）；计算机三牌合署",
+  "colleges": {
+   "_9学院": "计算机144/通信213/电光柔性153/自动化106/物联网92/集成电路72/邮政智慧交通26/数媒26/AI17（campus 仙林518/三牌楼331）"
+  }
+ },
+ "重庆邮电大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "三源合并：TSITES 门户（census 888 闭合+mail 311）+官网（Playwright+AutomationControlled flag 破瑞数）+2027 招生目录 PDF（兜底 170）；campus 全南岸（无渝北校区，任务书假设证伪）；网安信法 CS 侧 52 与法学侧 22 分离",
+  "colleges": {
+   "_7单元": "通信235/自动化172/计算机143/集成电路128/AI(讯飞合建)101/网安CS侧52/大数据国重4（sidecar 兼职101/跨院152）"
+  }
+ },
+ "南方科技大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "无 WAF；母站字母索引=全校 983 人基准；系站比母站全（双向并集）；sdim 并入 aim；机器人研究院虚体 sidecar",
+  "colleges": {
+   "_8单元": "计算机41/电子电气47/力航53/自动化与智能制造30/统计与数据31/前沿交叉19/前沿生物4/斯发基斯4（ritas 双聘24/sir 跨聘27 sidecar）"
+  }
+ },
+ "深圳大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "csse SPA 分页云渲染不可达（副教授/助理教授 44 人缺口待补）；同名张力×2 按职称分立；鹏城实验室独立法人排除；大数据国重 50 人兼聘归并",
+  "colleges": {
+   "_4单元": "计算机与软件102/电子与信息106/AI学院(腾讯云)61/大数据国重10"
+  }
+ },
+ "上海科技大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "隐藏 API 双站（SIST teacherHome siteId=43 无过滤 193 闭合/BME articles siteId=95 f11=工作单位双轨）；中科院联聘 81 人 institution 双轨标注；宋富 API 无+410 Gone 疑站方删记录",
+  "colleges": {
+   "_3学院": "信息科学与技术146/生物医学工程(AI交叉)61/数学科学研究所28"
+  }
+ },
+ "合肥工业大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "无 WAF；TSITES census 1642 人（gtutor/doctorTutor 身份字段可用）；wdzxy 隐藏 API；yjsdsfc 导师风采=视频站勿当导师库；新设人工智能创新学院已纳入（名录未发布 0 条缺口）",
+  "colleges": {
+   "_7单元": "计算机与信息209/电气自动化61/微电子53/汽车车联网38/软件22/AI创新学院11/集成电路9（campus 翡翠湖293/屯溪路96/宣城3）"
+  }
+ },
+ "暨南大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "无 WAF；faculty.jnu census 全校 1436 人（collegeId 失效族，画像轮可零成本复用）；深圳校区无 AI/CS（深旅纯旅游）；珠海智科/包装两院 49 人；黄元亮等 13 条 2016 电气信息学院拆分残影待核",
+  "colleges": {
+   "_4单元": "信科四系207/网安39/智能科学与工程(珠海)35/包装智能检测14"
+  }
+ },
+ "苏州大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "学院子域 SNI 封锁（WAF 第四形态）；主源=web.suda 统一教师主页平台（census 1421）+搜索快照；计算机/软件/保密三牌一套编制；未来校区挂江苏省人工智能学院牌；李直旭已调复旦实证",
+  "colleges": {
+   "_4单元": "计算机软件保密84/电子信息52/轨道交通44/未来科学与工程(省AI学院)36（campus 天赐庄/阳澄湖/未来）"
+  }
+ },
+ "香港中文大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "英文站；IE 系 WordPress REST 金矿；CSE 尾斜杠陷阱；黄锦辉/苏文藻在 SEEM 系下轮纳入",
+  "colleges": {
+   "_4系": "CSE 64/IE 45/EE 36/Math计算组8"
+  }
+ },
+ "岭南大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "School of Data Science；scholars.ln.edu.hk Elsevier Pure 门户金矿；**姚新 Yao Xin 已确认覆盖（Distinguished Prof/演化计算/在招 PhD）**",
+  "colleges": {
+   "_1院": "SDS 46（讲席4+学术39+管理3）"
+  }
+ },
+ "北京邮电大学": {
+  "updated": "2026-10-02",
+  "domain_notes": "see.bupt.edu.cn（电子工程学院站）瑞数 WAF 第四解法：**本地 DrissionPage+系统 Edge 全站通过**（curl/WebFetch/Playwright-Chromium 均拒：412→挑战 JS→400 指纹校验）；teacher.bupt.edu.cn TSITES 本地请求按页错误码全拒（VBR/255G3/OEOA1/MKP04/H18AT/ITJ6K），但 **webReader 88/89 人通过**——本地死先试 webReader",
+  "colleges": {
+   "电子工程学院": {
+    "entry": "see.bupt.edu.cn/szdw/{zgj,fgj,zj}",
+    "form": "vsb 分页 12 人/页四序列（正高 79/副高 87/中级 20，2026-10-02 实测 186 唯一人）",
+    "notes": "详情页 info/1049|1051/NNNN.htm 常为简版（姓名/职称/照片）；方向靠 TSITES 个人页 webReader；13 人 TSITES email 加密串一律 null 不猜；18 人名录职称 vs TSITES 自述打架照名录"
+   },
+   "计算机学院": {
+    "notes": "TSITES cid10 census totalnum 精确闭合（审计锚）；详情页二遍可补方向"
+   }
+  },
+  "blocked_sources": [
+   "see.bupt.edu.cn 对 curl/requests/WebFetch/Playwright 全拒——必须 DrissionPage+系统 Edge",
+   "teacher.bupt.edu.cn 本地通道死——webReader 通道 88/89"
+  ]
+ },
+ "上海大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "8 站点全可达无 WAF；母站对简短 UA 返 403（须完整 Chrome UA）；**Word 粘贴名录双层混排**：锚点名 ⊂ 纯文本名（分隔≥6 个 nbsp/space，姓名内 1-2 单位断点如'施 群'）——锚点-only 解析静默漏人，须锚点+纯文本双通道；**校级统一页脚地址≠campus 证据**（7 院页脚全是宝山上大路 99 号，悉商实际嘉定——campus 须院级'联系我们'楼栋+研招网佐证）；**label 正则必须自包 (?:…)**：label 含 | 时 re.search(label+'[：:]') 优先级 bug 崩溃；**栏目标题≠完备度**（SCIE'教授名录'41 人⊂'硕导名录'sdml 119 人，两栏都要抓对账）；未来技术学院=AI 研究院同域合署（母站 yxsz.htm 双名同 URL）；翔英学院导师页空模板（别名映射至 SCIE）",
+  "colleges": {
+   "_7单元": "CS 92/SCIE 119(sdml权威)/机电自动化系74(其余5系224入sidecar)/未来技术学院(AI研究院)54/微电子138/MGI 79/悉商22(嘉定)",
+   "_campus": "宝山556/嘉定22",
+   "_diff": "578 条 vs 评价库 98 条：matched15/dept_shift22/unverified9/范围外52（机电13条实为sidecar系）"
+  }
+ },
+ "澳门科技大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "FIE 创新工程学院（fie.must.edu.mo）直连 200 无 WAF；**person id 按列表上下文分配（跨列表零重叠）**：同一人在教研团队与硕博导师两列表下 view id 不同，链接级去重失效，必须 email/姓名合并（88/103 人双列表确证）；**列表卡片每人双链接**（中英文名同 href，链接数=人数×2）；工程科学系页 label 缺失/错位变体（无'所在部门'、'联系电话'值位被系名顶替——按值语义兜底）；官网 label 错字'计算器科学与工程学院'1 例；页面字段不齐常态（无职称行/无 Research Area 区块/姓名带星号/超长外文名）——面包屑+label 双锚、职称 search 式、长度阈 45 后 191/191 全过；口径=FIE 4 列表（CSE 63/工程科学系 40，email 覆盖 100%），硕博导师名单 91 人",
+  "colleges": {
+   "_FIE": "CSE 63/工程科学系 40（材料/环境/太空子系页面未细分）",
+   "_diff": "评价库 2 条均口径外（中医药/人文艺术）"
+  }
+ },
+ "香港科技大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "真域 *.hkust.edu.hk；CSE 在 /admin/people/faculty/；ECE drupal-settings-json 内嵌全量；GZ 校独立法人另批；**跨校调动实锤：Qiang Yang 荣休→现任理大 DSAI；Pascale Fung CSE→ECE Primary**",
+  "colleges": {
+   "_5单元": "CSE 75/ECE 81/数学计算组22/EMIA14/AMC16（清水湾）"
+  }
+ },
+ "香港理工大学": {
+  "updated": "2026-10-01",
+  "domain_notes": "无 WAF；DSAI 真建制新系 29 人（杨强在）；EIE 已并入 EEE（/eie/* 301）；RIAIoT 研究院 31（主场在册注记）",
+  "colleges": {
+   "_6单元": "COMP78/DSAI29/EEE84/RIAIoT31/LMS2/AAE1"
+  }
+ },
+ "澳门大学": {
+  "updated": "2026-10-02",
+  "domain_notes": "**fst.um.edu.mo 全域 FortiADC 503，唯一通道=webReader 云渲染**；www.um.edu.mo/skliotsc/ime 直连 200（WordPress 系）；**FST 繁体名须简繁配对才能 matched 评价库**（诸嫣↔諸嫣）；渲染 md 脏字符（U+2019/双空格/占位符）须清洗；IME people__name 类名多义且 split 返回序是 (en,zh)（parse_um.py 遗留变量交换 bug 致中文名全 null，组装层恢复）；IOTSC 卡'分组≠职称'（黄民聪挂 Adjunct 分组但卡面 Professor）；IOTSC 个人页跨域链接；**CAIR 官网已消亡**（FST 双聘覆盖但成员映射不可重建）；FST 侧栏'改组五学院'信号——本轮名录=改组前全院基线",
+  "colleges": {
+   "_3单元": "FST 全院表 194 行（Chair8/卓6/教授31/副57/助72/RAP3/高讲8/讲1/荣休5/兼聘3，webReader 一次取全）+ IOTSC 44 + IME 10（全 FST 双聘）→ 唯一 197（FST独有143/∩IOTSC 41/∩IME 10/IOTSC独有3）",
+   "_系别": "CIS 37（计算机主系）/ECE 52/MATH 22/PC 27/CEE 20/EME 20/OST 13",
+   "_diff": "matched4/maybe_left3（路延/陈俊龙=C.L. Philip Chen/冼伟光）/unverified 口径外30"
+  }
+ },
+ "香港城市大学": {
+  "updated": "2026-10-02",
+  "domain_notes": "cs/ds 子域直连正常（单页 20s 慢但稳）；**www 主域与 ee 子域 Incapsula JS 挑战**（212B/1048B 壳，代理无效=非 IP 型，勿浪费重试；**间歇性，判死前必重测**——前次全拒本轮 DS 直连恢复）；**Pure 门户三层可达性**：org 层级页 200（探建制层级用，College of Computing=CS+DS 两系 2024 重组实证）、/persons/ 列表 Cloudflare 403、/ws/api 403——富字段走学系卡片内嵌单人 scholars 直链；CS 卡片金矿：一行三料（英文+中文+职称）+mailto 明文+data-item 属性；DS 两套模板（staff-row 卡片 vs 子页 row/col-md-9 平铺），class 属性含换行须前缀式正则；跨系同人去重键=letter-multiset（序无关）+职称学位双验证；卡片 img alt 是中文名富矿（'Dr. X (張子鈞博士)'剥后缀）；**EE 系未纳入（Incapsula 全挡）=已知缺口，AI 导师下轮浏览器/Pure 单人页补**",
+  "colleges": {
+   "_2系": "CS 61（Academic52+RAP6+Teaching3）/DS 46（Academic31+RAP4+GRAP3+Practice3+Lect5）",
+   "_diff": "评价库 6 条：matched1（朱克宁）/unverified5（均范围外）"
+  }
+ },
+ "香港教育大学": {
+  "updated": "2026-10-02",
+  "domain_notes": "**TLS legacy renegotiation 坑**：老服务器要求旧式重协商，Python3.12/OpenSSL3 默认拒（UNSAFE_LEGACY_RENEGOTIATION_DISABLED）——curl 通而脚本全挂先怀疑 TLS 层；解法 ssl ctx.options |= OP_LEGACY_SERVER_CONNECT；无独立 CS 系，**AI/CS 建制=MIT 系（数学与资讯科技，FLASS 下）整体入库**（规模小全系采，与 HKUST Math 筛计算组不同）；**对账基准=people 总览页 id 全集**（领导岗 Acting/Associate Heads 独立分类不在常规 11 分类页，差 4 人靠差集补抓）；方向字段一站四态（li 关键词/li 散文/纯散文/无节），无节=站方未填勿重抓；标志性师资：徐贯东（Chair Prof of AI）/Ferrante（ML&AI Chair，进化计算）",
+  "colleges": {
+   "_1系": "MIT 46（Chair5+Prof2+AP15+Associate8+RAP2+讲师教员12+Teaching2）",
+   "_diff": "评价库 0 条，无 join 对象"
+  }
+ },
+ "香港浸会大学": {
+  "updated": "2026-10-02",
+  "domain_notes": "CS 42+Math 20；评价库 0 条基线",
+  "colleges": {
+   "_2系": "CS42/Math20"
+  }
+ },
+ "香港大学": {
+  "updated": "2026-10-02",
+  "domain_notes": "全程代理 7892；**AI & Data Science 系 33 人为真建制**（cds.hku.hk backbone division=ai 互证）；ECE(原EEE)/DASE(原IMSE) 系名沿革；双代理事件+union_provenance 溯源范例见报告",
+  "colleges": {
+   "_7单元": "ECE61/CS53/AI&DS33/DASE23/IDS21/Math16/SAAS13"
+  }
+ }
+}

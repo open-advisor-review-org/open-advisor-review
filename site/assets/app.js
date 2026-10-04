@@ -15,7 +15,7 @@ const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "dc86aba8";
+const BUST = "19c5b3a1";
 async function loadJSON(url) {
   if (cache[url]) return cache[url];
   const r = await fetch(url + (url.includes("?") ? "&" : "?") + "v=" + BUST);
@@ -302,7 +302,18 @@ const Search = (() => {
       if (!pop.classList.contains("show")) return;
       if (e.key === "ArrowDown") { e.preventDefault(); move(1); }
       else if (e.key === "ArrowUp") { e.preventDefault(); move(-1); }
-      else if (e.key === "Enter") { e.preventDefault(); if (items[activeIdx]) { go(items[activeIdx]); } }
+      else if (e.key === "Enter") {
+        e.preventDefault();
+        if (items[activeIdx]) { go(items[activeIdx]); }
+        else if (!rows && input.value.trim()) {
+          /* 索引未就绪时按回车：等就绪后自动跳第一项，不再静默无响应 */
+          ensure().then(() => {
+            if (document.activeElement !== input || !input.value.trim()) return;
+            run();
+            if (items[0]) go(items[0]);
+          });
+        }
+      }
       else if (e.key === "Escape") pop.classList.remove("show");
     });
     if (!docClickBound) {

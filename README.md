@@ -117,6 +117,16 @@ agent 会自动进入 advisor-research 流程：官方主页 → 学术库（DBL
 
 不随仓库分发的还有：`refs/` 下的四个历史数据镜像（均无 LICENSE）、原始管线工作区。仓库内 `site/build.py` 是从上游数据产物重建站点 JSON 的构建脚本，本仓库已内置其构建产物，通常不需要重跑。
 
+### 致谢：上游数据项目
+
+本项目的 39,739 条历史匿名评价，整理自以下 GitHub 开源项目（其数据源于已关停的原「导师评价网」/ urfire 生态）。**我们未在本仓库再分发他们的原始数据**，仅发布从中合成的评分与遮蔽后的维度摘录；原始数据的版权属各仓库作者与全体评价者：
+
+- [apachecn/RateMySupervisor-1](https://github.com/apachecn/RateMySupervisor-1)（urfire 2022 版镜像）与 [pengp25/RateMySupervisor](https://github.com/pengp25/RateMySupervisor)（2020 版 fork）—— 28k+ 条评价的主体来源；kgco 原仓库现已删除，靠这些镜像存续
+- [wangzhiye-tiancai/mysupervisor_save](https://github.com/wangzhiye-tiancai/mysupervisor_save) —— 原导师评价网 web.archive.org 存档索引（2014–2020）
+- 导查查数据存档（[lovely-car/CAR](https://github.com/lovely-car/CAR)，2024.2 更新）—— 约 26k 条，是三源中唯一含 2020 年后新增评价的
+
+感谢前人项目抢救并保存了这些数据；他们的经验教训（时间衰减、匿名验证、存活优先）直接塑造了本项目的设计，调研详见 [SURVEY.md](SURVEY.md)。
+
 ## 目录结构
 
 ```

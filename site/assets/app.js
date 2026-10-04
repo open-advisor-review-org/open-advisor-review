@@ -298,7 +298,7 @@ const Search = (() => {
       const q = input.value.trim().toLowerCase();
       activeIdx = -1;
       if (!q || !rows) { pop.classList.remove("show"); return; }
-      const nameHit = (r) => String(r[0]).toLowerCase().includes(q);
+      const nameHit = (r) => String(r[0]).toLowerCase().includes(q) || (r[7] && String(r[7]).toLowerCase().includes(q));
       const uniHit = (r) => String(r[1]).toLowerCase().includes(q);
       const adv = rows.filter((r) => nameHit(r)).slice(0, 9);
       const advUni = q.length >= 2 ? rows.filter((r) => !nameHit(r) && uniHit(r)).slice(0, 4) : [];
@@ -313,11 +313,12 @@ const Search = (() => {
         html += `<div class="grp">导师 ADVISORS</div>`;
         adv.concat(advUni).forEach((r) => {
           items.push({ sid: r[2], aid: r[3] });
-          html += itemHTML(`${ic("user")} <span class="nm">${esc(r[0])}</span>`, `<span class="un">${esc(r[1])}${r[5] ? " · " + r[5] + " 条评价" : " · 库内无评价"}</span>`, r[4] != null ? `<span class="rt">${pill(r[4], 1)}</span>` : "");
+          html += itemHTML(`${ic("user")} <span class="nm">${esc(r[0])}${r[7] ? "（" + esc(r[7]) + "）" : ""}</span>`, `<span class="un">${esc(r[1])}${r[5] ? " · " + r[5] + " 条评价" : " · 库内无评价"}</span>`, r[4] != null ? `<span class="rt">${pill(r[4], 1)}</span>` : "");
         });
       }
       pop.innerHTML = html || `<div class="empty">未找到「${esc(q)}」相关导师或学校</div>`;
       pop.classList.add("show");
+      $$(".item", pop).forEach((el, i) => el.addEventListener("mousedown", (e) => { e.preventDefault(); if (items[i]) go(items[i]); }));
       function itemHTML(main, sub, right) { return `<div class="item">${main}${sub}${right}</div>`; }
     }
   }
@@ -658,7 +659,7 @@ async function viewSchool(sid) {
   ];
   const render = () => {
     let rows = list.slice();
-    if (st.q) rows = rows.filter((a) => a.supervisor.includes(st.q) || (a.departments || []).join().includes(st.q) || (a.roster && (a.roster.areas || []).join().includes(st.q)));
+    if (st.q) rows = rows.filter((a) => a.supervisor.includes(st.q) || (a.alias && a.alias.includes(st.q)) || (a.departments || []).join().includes(st.q) || (a.roster && (a.roster.areas || []).join().includes(st.q)));
     if (st.filters.has("scored")) rows = rows.filter((a) => a.composite != null);
     if (st.filters.has("neg")) rows = rows.filter((a) => a.composite != null && a.composite < 0);
     if (st.filters.has("hard")) rows = rows.filter((a) => a.dropout.hard);
@@ -685,7 +686,7 @@ async function viewSchool(sid) {
     <tr class="clickable" onclick="location.hash='#/school/${sid}/${a.id}'">
       <td><div style="display:flex;align-items:center;gap:9px">
         <span style="width:30px;height:30px;border-radius:8px;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;flex:none">${esc(a.supervisor.trim()[0] || "?")}</span>
-        <span><span class="name">${esc(a.supervisor)}</span><span class="sub" style="display:block">${a.n_reviews ? fmt(a.n_reviews) + " 条评价" : "库内无评价"}</span></span>
+        <span><span class="name">${esc(a.supervisor)}</span>${a.alias ? `<span class="sub" style="display:inline-block;margin-left:4px;color:var(--muted)">${esc(a.alias)}</span>` : ""}<span class="sub" style="display:block">${a.n_reviews ? fmt(a.n_reviews) + " 条评价" : "库内无评价"}</span></span>
       </div></td>
       <td style="max-width:150px"><span class="sub" style="display:block;font-size:12px;color:var(--muted)">${esc((a.departments || [])[0] || "—")}</span><span class="sub">${esc(title || "")}</span></td>
       <td style="max-width:190px;font-size:12px;color:var(--muted)"><span class="chip" style="font-size:11px;padding:1px 8px;margin-right:6px">${esc(a.dir_bucket || "未标注")}</span>${areas ? esc(areas.length > 20 ? areas.slice(0, 20) + "…" : areas) : ""}</td>
@@ -889,7 +890,7 @@ async function viewAdvisor(sid, aid) {
     <div class="adv-head">
       <div class="adv-ava">${esc(a.supervisor.trim()[0] || "?")}</div>
       <div style="flex:1">
-        <h1>${esc(a.supervisor)} ${researchChip(a)} ${aiChip(a)}</h1>
+        <h1>${esc(a.supervisor)}${a.alias ? ` <span style="font-size:16px;font-weight:500;color:var(--muted)">（${esc(a.alias)}）</span>` : ""} ${researchChip(a)} ${aiChip(a)}</h1>
         <div class="affil"><b>${esc(a.university)}</b>${(a.departments || []).length ? " · " + esc(a.departments.slice(0, 2).join(" / ")) : ""}${a.roster && a.roster.title ? " · " + esc(a.roster.title) : ""}</div>
         <div class="adv-tags">
           ${a.dir_bucket ? `<span class="chip ai">${ic("radar", 12)} ${esc(a.dir_bucket)}</span>` : ""}

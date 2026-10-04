@@ -350,6 +350,8 @@ def main():
     raw_reports = parse_reports()
     area_map = load_aux("area_bucket.json")
     dept_map = load_aux("dept_bucket.json")
+    # 英文名导师中文名对照（海外/港澳导师可被中文搜索到，用户 2026-10-07 要求）
+    alias_map = {k: v for k, v in load_aux("name_alias.json").items() if not k.startswith("_")}
     report_by_key = lambda uni, sup: match_report(raw_reports, uni, sup)
 
     dmap = {(x["university"], x["supervisor"]): x for x in pilot_dir}
@@ -458,6 +460,7 @@ def main():
             "report": report_by_key(uni, sup),
             "reviews": rev_payload,
         }
+        rec["alias"] = alias_map.get(f"{uni}|{sup}")
         school_adv[uni].append(rec)
 
         # ---- 红线脱敏（用户 2026-10-04 要求：触发红线惩罚的导师全站匿名=姓氏+拼音缩写）----
@@ -548,7 +551,7 @@ def main():
         sid = sid_of(uni)
         for r in recs:
             st = r["research_status"] or ("done" if r["synthesis"] else None)
-            srows.append([r["supervisor"], uni, sid, r["id"], r["composite"], r["n_reviews"], st])
+            srows.append([r["supervisor"], uni, sid, r["id"], r["composite"], r["n_reviews"], st, r.get("alias")])
     json.dump(deep_sanitize(srows), open(os.path.join(OUT, "search.json"), "w", encoding="utf-8"),
               ensure_ascii=False, separators=(",", ":"))
 

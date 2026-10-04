@@ -603,6 +603,18 @@ def main():
     json.dump(deep_sanitize(stats), open(os.path.join(OUT, "stats.json"), "w", encoding="utf-8"),
               ensure_ascii=False, separators=(",", ":"))
 
+    # ---- 静态资源版本号自增（内容哈希，改代码必失效缓存）----
+    here = os.path.dirname(os.path.abspath(__file__))
+    h = hashlib.md5()
+    for fn in ("assets/app.js", "assets/style.css"):
+        h.update(open(os.path.join(here, fn), "rb").read())
+    bust = h.hexdigest()[:8]
+    ix = os.path.join(here, "index.html")
+    html = open(ix, encoding="utf-8").read()
+    html = re.sub(r"\?v=[0-9a-f]{1,10}", f"?v={bust}", html)
+    open(ix, "w", encoding="utf-8", newline="\n").write(html)
+    print("cache bust:", bust)
+
     total_mb = sum(os.path.getsize(os.path.join(OUT, f)) for f in os.listdir(OUT) if os.path.isfile(os.path.join(OUT, f))) / 1e6
     school_mb = sum(os.path.getsize(os.path.join(OUT, "school", f)) for f in os.listdir(os.path.join(OUT, "school"))) / 1e6
     print("OK schools=%d advisors=%d reviews=%d scored=%d neg=%d reports=%d" % (

@@ -15,7 +15,7 @@ const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "5a5e9dad";
+const BUST = "2c613ae5";
 async function loadJSON(url) {
   if (cache[url]) return cache[url];
   const r = await fetch(url + (url.includes("?") ? "&" : "?") + "v=" + BUST);
@@ -23,6 +23,9 @@ async function loadJSON(url) {
   return (cache[url] = r.json());
 }
 const API = "assets/api/";
+/* QS 2027 世界大学排名（2026-06 发布；数据源=选校网 QS 官方镜像前600名+英文维基交叉验证；gen_qs2027_map.py 生成） */
+const QS2027 = {"东南大学":335,"浙江大学":47,"中国科学院大学":360,"西安交通大学":296,"华中科技大学":307,"北京航空航天大学":349,"天津大学":235,"上海交通大学":36,"大连理工大学":463,"中国科学技术大学":134,"清华大学":14,"北京大学":13,"武汉大学":165,"四川大学":300,"电子科技大学":488,"哈尔滨工业大学":190,"北京理工大学":243,"中南大学":452,"重庆大学":465,"同济大学":146,"南开大学":329,"华南理工大学":342,"西北工业大学":425,"复旦大学":26,"吉林大学":488,"南京大学":90,"厦门大学":303,"湖南大学":477,"山东大学":309,"华东师范大学":394,"中山大学":258,"上海大学":443,"中国农业大学":477,"北京师范大学":237,"郑州大学":581,"北京科技大学":443,"香港科技大学":33,"暨南大学":483,"Nanyang Technological University":12,"深圳大学":416,"浙江工业大学":560,"中国人民大学":521,"香港中文大学":18,"澳门大学":267,"南方科技大学":317,"香港大学":11,"National University of Singapore":10,"香港理工大学":50,"University of Sydney":28,"University of Technology Sydney":87,"Massey University":215,"Technical University Munich":25,"University of Utah":533,"东京大学":39,"Singapore University of Technology and Design":266,"The University of Sheffield":82,"University of New South Wales":19,"Columbia University":43,"University of California, Los Angeles":49,"香港城市大学":52,"Duke University":70,"Royal Institute of Technology":82,"University of Florida":228,"University of Melbourne":22,"King's College London":37,"Kyung Hee University":309,"Purdue University":100,"Univerisity of British Columbia":45,"University of Groningen":157,"University of Wisconsin-Madison":131,"东北大学(日本)":102,"京都大学":64,"名古屋大学":156,"大阪大学":95,"Delft University of Technology":48,"Massachusetts Institute of Technology":1,"McGill University":30,"RWTH Aachen University":104,"The Ohio State University":201,"University of Hamburg":209,"University of Illinois Urbana-Champaign":74,"University of Nottingham":97,"University of Toronto":32,"University of Wollongong":195,"东京工业大学":97,"Lund University":71,"Standford University":2,"Texas A&M University":169,"The Australian National University":29,"The Johns Hopkins University":20,"The University of Queensland":40,"University of Otago":198,"University of Rochester":251,"University of Washington":92,"University of Waterloo":113,"Washington University in St Louis":162,"九州大学":171,"北海道大学":179,"澳门科技大学":398,"Brown University":66,"California Institute of Technology":7,"Imperial College of SciTechMed":2,"New York University":58,"Queen's University":179,"Radboud University Nijmegen":283,"Swinburne University of Technology":291,"The University of Edinburgh":35,"University College London":8,"University of Amsterdam":60,"University of Bristol":57,"University of California, Davis":137,"University of Cambridge":6,"University of Chicago":24,"University of Freiburg":245,"University of Maryland, College Park":252,"University of Michigan":51,"University of Minnesota, Twin Cities":255,"University of Ottawa":228,"University of Pennsylvania":15,"University of Surrey":246,"University of Twente":223,"Victoria University of Wellington":241,"Yale University":16,"广岛大学":481,"筑波大学":351,"岭南大学":581,"香港教育大学":406,"香港浸会大学":216};
+function qsBadge(name) { const q = QS2027[name]; return q ? `<span class="chip qs" data-tip="QS 2027 世界大学排名（2026-06 发布）">QS ${q}</span>` : ""; }
 /* 共建联系方式（部署前替换为真实仓库/邮箱） */
 const CONTACT = { github: "https://github.com/open-advisor-review-org/open-advisor-review", email: "nameless202610@163.com" };
 
@@ -381,6 +384,23 @@ document.addEventListener("keydown", (e) => {
   if (el) { e.preventDefault(); el.click(); }
 });
 
+/* ---------- 收藏导师（localStorage，零后端） ---------- */
+const Fav = (() => {
+  const KEY = "oar_favs_v1";
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { return []; } };
+  const save = (arr) => { try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch (e) {} };
+  const has = (sid, aid) => load().some((x) => x.sid === sid && x.aid === aid);
+  const toggle = (snap) => {
+    const arr = load();
+    const i = arr.findIndex((x) => x.sid === snap.sid && x.aid === snap.aid);
+    if (i >= 0) arr.splice(i, 1); else arr.push(snap);
+    save(arr);
+    return i < 0;
+  };
+  const clear = () => save([]);
+  return { load, has, toggle, clear };
+})();
+
 /* ============================================================
    视图：数据大盘（首页只放核心数字与分布）
    ============================================================ */
@@ -530,7 +550,7 @@ async function viewSchools(t) {
       <tr class="clickable" role="link" tabindex="0" data-href="#/school/${s.sid}">
         <td class="num" style="color:var(--faint)">${i + 1}</td>
         <td><span class="name">${esc(s.name)}</span></td>
-        <td>${cateChip(s.cate)}</td>
+        <td>${cateChip(s.cate)}${qsBadge(s.name)}</td>
         <td class="num">${fmt(d.n_advisors)}</td>
         <td class="num">${fmt(d.n_reviews)}</td>
         <td class="num">${fmt(d.n_scored)}</td>
@@ -719,7 +739,10 @@ async function viewSchool(sid, t) {
   if (t !== routeToken) return;
 
   /* 过滤与排序状态 */
-  let st = { q: "", sort: "composite", dir: "", filters: new Set() };
+  let st = { q: "", sort: "composite", dir: "", dept: "", filters: new Set() };
+  const deptCount = {};
+  list.forEach((x) => { const d = (x.departments || [])[0]; if (d) deptCount[d] = (deptCount[d] || 0) + 1; });
+  const deptOpts = Object.entries(deptCount).filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh"));
   const DIR_ORDER = ["LLM/大模型", "CV/NLP经典", "机器人/具身", "传统ML/挖掘", "网络安全/系统", "其他CS方向", "电子信息/通信", "自动化/控制", "其他学科（非AI）", "未标注"];
   const sorts = [
     ["composite", "综合分 ↓"], ["n", "评价数 ↓"], ["academics", "学术水平 ↓"],
@@ -737,6 +760,7 @@ async function viewSchool(sid, t) {
     if (st.filters.has("report")) rows = rows.filter((a) => a.report || a.synthesis);
     if (st.filters.has("ai")) rows = rows.filter((a) => a.tier === "ai_core" || a.tier === "ai_signal");
     if (st.dir) rows = rows.filter((a) => a.dir_bucket === st.dir);
+    if (st.dept) rows = rows.filter((a) => (a.departments || [])[0] === st.dept);
     const key = {
       composite: (a) => (a.composite == null ? -999 : a.composite),
       n: (a) => a.n_reviews,
@@ -779,7 +803,7 @@ async function viewSchool(sid, t) {
     <div class="sch-head">
       <div class="sch-ava">${esc(m.name.trim()[0])}</div>
       <div style="flex:1">
-        <h1>${esc(m.name)} ${cateChip(m.cate)}</h1>
+        <h1>${esc(m.name)} ${cateChip(m.cate)} ${qsBadge(m.name)}</h1>
         <div class="meta">
           <span class="chip">${ic("user")} 库内导师 ${fmt(m.n_advisors)}</span>
           <span class="chip">${ic("doc")} 评价 ${fmt(m.n_reviews)} 条</span>
@@ -801,6 +825,7 @@ async function viewSchool(sid, t) {
         <div class="toolbar">
           <input type="text" id="advQ" placeholder="校内搜索导师/方向…" value="${esc(st.q)}">
           <select id="advDir"><option value="">全部方向</option>${DIR_ORDER.filter(d => list.some(a => a.dir_bucket === d)).map(d => `<option value="${d}"${d === st.dir ? " selected" : ""}>${d}（${list.filter(a => a.dir_bucket === d).length}）</option>`).join("")}</select>
+          <select id="advDept"><option value="">全部学院</option>${deptOpts.map(([d, n]) => `<option value="${esc(d)}"${d === st.dept ? " selected" : ""}>${esc(d.length > 22 ? d.slice(0, 22) + "…" : d)}（${n}）</option>`).join("")}</select>
           <select id="advSort">${sorts.map(([k, lab]) => `<option value="${k}"${k === st.sort ? " selected" : ""}>${lab}</option>`).join("")}</select>
           <div class="fchips">${filters.map(([k, lab, d]) => `<span class="fchip${d ? " danger" : ""}" role="button" tabindex="0" data-k="${k}">${lab}</span>`).join("")}</div>
           <span style="margin-left:auto;font-size:12.5px;color:var(--muted)">显示 <b id="advCount">—</b> 位导师</span>
@@ -819,6 +844,7 @@ async function viewSchool(sid, t) {
   $("#advQ").addEventListener("input", (e) => { st.q = e.target.value.trim(); render(); });
   $("#advSort").addEventListener("change", (e) => { st.sort = e.target.value; render(); });
   $("#advDir").addEventListener("change", (e) => { st.dir = e.target.value; render(); });
+  $("#advDept").addEventListener("change", (e) => { st.dept = e.target.value; render(); });
   $$(".fchips .fchip", app).forEach((t) => t.addEventListener("click", () => {
     const k = t.dataset.k;
     st.filters.has(k) ? st.filters.delete(k) : st.filters.add(k);
@@ -862,7 +888,7 @@ async function viewAdvisor(sid, aid, t) {
   const contrib = (p) => (p.v * p.w) / wsum;
   const partsRows = a.parts.map((p) => {
     const w = Math.max(0, contrib(p)) / 5 * 100;
-    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line-2)">
+    return `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line-2)">
       <span style="width:120px;font-size:13px;font-weight:600;color:var(--ink-2)">${esc(p.label)}</span>
       ${pill(p.v, 1)}
       <span class="chip" style="font-family:var(--mono)">×${p.w}</span>
@@ -871,7 +897,7 @@ async function viewAdvisor(sid, aid, t) {
     </div>`;
   }).join("");
   const penRows = (a.penalties || []).map((p) => `
-    <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed #ffd9da">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed #ffd9da">
       <span style="width:120px;font-size:13px;font-weight:600;color:var(--danger)">${esc(p.label)}</span>
       <span class="pen-item"><b>${f1(p.pts)}</b></span>
       <div class="mini-bar" style="flex:1"><i class="neg" style="width:${(Math.abs(p.pts) / 7 * 100).toFixed(1)}%"></i></div>
@@ -952,6 +978,39 @@ async function viewAdvisor(sid, aid, t) {
   const yearsAgo = latest ? ((new Date(genDate) - new Date(latest)) / 3.15e10).toFixed(1) : null;
   const recent3 = dated.filter((d) => d >= "2023-10").length, recent5 = dated.filter((d) => d >= "2021-10").length;
 
+  /* ---- 网评星级分布 ---- */
+  const rateDist = (() => {
+    const d = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    let n = 0;
+    (a.reviews || []).forEach((r) => { if (r.rate != null) { d[Math.min(5, Math.max(1, Math.round(r.rate)))]++; n++; } });
+    return { d, n, posPct: n ? Math.round(((d[4] + d[5]) / n) * 100) : null };
+  })();
+  const rateDistBlock = rateDist.n ? `
+        <div class="pen-row" style="background:var(--surface-2)">
+          <span class="t" style="font-size:12.5px">${ic("check")} 网评星级分布</span>
+          <div class="rate-dist">
+            ${[5, 4, 3, 2, 1].map((s) => `<div class="rd-row"><span class="rd-lab">${s}★</span><div class="rd-bar"><i style="width:${Math.round(rateDist.d[s] / rateDist.n * 100)}%"></i></div><span class="rd-n">${rateDist.d[s]}</span></div>`).join("")}
+          </div>
+          <span style="font-size:12.5px;color:var(--muted);padding-left:12px;border-left:1px dashed var(--line)">好评率 <b style="color:${rateDist.posPct >= 60 ? "var(--ok)" : rateDist.posPct >= 40 ? "var(--warn)" : "var(--danger)"}">${rateDist.posPct}%</b>（4★+5★，共 ${rateDist.n} 条有星评价）</span>
+        </div>` : "";
+
+  /* ---- 同校高分参考 ---- */
+  const topRefs = data.advisors
+    .filter((x) => x.id !== a.id && x.composite != null && x.composite >= 3)
+    .sort((x, y) => y.composite - x.composite || y.n_reviews - x.n_reviews)
+    .slice(0, 3);
+  const refsBlock = topRefs.length ? `
+    <section class="sec">
+      <div class="sec-h"><span class="bar"></span><span class="zh">同校高分参考</span><span class="en">Also at ${esc(m.name)}</span><span class="desc">本校综合分 ≥3 的导师，供横向对比</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px" class="quick-grid">
+        ${topRefs.map((x) => `
+        <a class="card quick" href="#/school/${sid}/${x.id}">
+          <div class="t">${esc(x.supervisor)}${x.penalty ? ` <span class="chip danger" style="font-size:11px">含红线</span>` : ""} <span class="arr">${ic("arrow")}</span></div>
+          <div class="d" style="display:flex;align-items:center;gap:10px">${pill(x.composite, 1)}<span>${x.n_reviews ? fmt(x.n_reviews) + " 条评价" : "库内无评价"}</span>${x.dir_bucket ? `<span class="chip ai" style="font-size:11px">${esc(x.dir_bucket)}</span>` : ""}</div>
+        </a>`).join("")}
+      </div>
+    </section>` : "";
+
   /* ---- 评价列表 ---- */
   const reviewCards = (a.reviews || []).map((r, i) => `
     <div class="review-card${i < 2 ? " open" : ""}">
@@ -992,6 +1051,7 @@ async function viewAdvisor(sid, aid, t) {
           ${a.roster && a.roster.mentor === "phd_supervisor" ? `<span class="chip">${ic("check", 12)} 博导</span>` : ""}
           ${a.rate_avg != null ? `<span class="chip"><span class="stars">${stars}</span> ${f1(a.rate_avg)} / 5</span>` : ""}
           <span class="chip">${ic("doc")} ${a.n_reviews} 条评价 · ${esc(span)}</span>
+          <button class="btn sm" id="favBtn" style="flex:none">${Fav.has(sid, aid) ? "★ 已收藏" : "☆ 收藏"}</button>
         </div>
       </div>
     </div>
@@ -1013,6 +1073,7 @@ async function viewAdvisor(sid, aid, t) {
           <span class="t" style="font-size:12.5px">${ic("clock")} 新鲜度</span>
           <span style="font-size:12.5px;color:var(--muted)">${latest ? `最近一条评价是 <b>${esc(latest.slice(0, 10))}</b>（约 ${yearsAgo} 年前）；近三年 ${recent3} 条、近五年 ${recent5} 条${yearsAgo > 6 ? "；⚠ 证据大多是六年前的[旧评]" : ""}` : "库内评价均无日期标注"}</span>
         </div>
+        ${rateDistBlock}
       </div>
     </div>
 
@@ -1030,7 +1091,7 @@ async function viewAdvisor(sid, aid, t) {
                 <span class="pen-item"><b>${f1(-(a.penalty || 0))}</b></span>
                 <span style="font-size:12px;color:var(--danger)">阶梯叠加制，多项并存全部累计</span>
               </div>` : ""}
-              <div style="display:flex;align-items:center;gap:10px;padding:9px 0 0;border-top:2px solid var(--line)">
+              <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:9px 0 0;border-top:2px solid var(--line)">
                 <span style="width:120px;font-size:13.5px;font-weight:800">= 综合分</span>
                 ${pill(C, 1)}
                 <span style="font-size:12px;color:var(--muted)">缺的项按剩余权重折算 · 有一条评价就计分</span>
@@ -1090,12 +1151,48 @@ async function viewAdvisor(sid, aid, t) {
       ${reviewCards || '<div class="empty-state">库内无评价（画像卡：仅官方名录基线 + 全网调研）</div>'}
     </section>
 
+    <!-- 同校高分参考 -->
+    ${refsBlock}
+
     <div class="disclaimer-strip" style="margin-top:20px">${ic("alert", 15)}<span>评分卡由程序自动合成，再叠加全网调研的补充修正，每个结论都能查到出处；<b>我们只摆证据，不说「该报 / 不该报」</b>。评价都是匿名网络存档，可能过时、有偏、甚至不实；师德类问题请以官方渠道为准，这里不复述细节。</span></div>
   </div>`;
+
+  /* 收藏切换 */
+  const favBtn = $("#favBtn");
+  if (favBtn) favBtn.addEventListener("click", () => {
+    const on = Fav.toggle({ sid, aid, name: a.supervisor, uni: m.name, score: C, n: a.n_reviews });
+    favBtn.textContent = on ? "★ 已收藏" : "☆ 收藏";
+  });
 
   window.scrollTo(0, 0);
 }
 
+
+/* ============================================================
+   我的收藏（localStorage，不上传任何数据）
+   ============================================================ */
+function viewFavs() {
+  const app = $("#app");
+  const favs = Fav.load();
+  const cards = favs.map((f) => `
+    <a class="card quick" href="#/school/${esc(f.sid)}/${esc(f.aid)}">
+      <div class="t">${esc(f.name || "导师")} <span class="arr">${ic("arrow")}</span></div>
+      <div class="d" style="display:flex;align-items:center;gap:10px">${f.score != null ? pill(f.score, 1) : ""}<span>${esc(f.uni || "")}${f.n ? " · " + f.n + " 条评价" : ""}</span></div>
+    </a>`).join("");
+  app.innerHTML = `
+  <div class="wrap fade-in">
+    <div class="crumb"><a href="#/">数据大盘</a><span class="sep">/</span><span class="cur">我的收藏</span></div>
+    <div class="sec-h" style="margin-top:18px"><span class="bar"></span><span class="zh">我的收藏</span><span class="en">My Favorites · ${favs.length}</span><span class="desc">只存在本设备浏览器里，不上传、不联网</span></div>
+    ${favs.length ? `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px" class="quick-grid">${cards}</div>
+    <div style="margin-top:18px"><button class="btn sm" id="favsClear">清空收藏（不可恢复）</button></div>
+    <div class="disclaimer-strip" style="margin-top:20px">${ic("alert", 15)}<span>收藏里的分数与评价数是收藏那一刻的快照，导师最新评分以点进详情页为准。</span></div>
+    ` : `<div class="empty-state" style="padding-top:80px">还没有收藏任何导师<br><br>打开导师评分卡，点右上角「☆ 收藏」即可加入</div>`}
+  </div>`;
+  const clearBtn = $("#favsClear");
+  if (clearBtn) clearBtn.addEventListener("click", () => { if (confirm("确定清空全部收藏？")) viewFavs(); });
+  window.scrollTo(0, 0);
+}
 
 /* ============================================================
    联系方式 / 加入我们
@@ -1153,7 +1250,7 @@ function viewContact() {
    路由
    ============================================================ */
 const SITE_TITLE = "AI 导师评价库 · 开源版";
-const ROUTE_TITLES = { schools: "学校榜单", method: "评分方法论", contact: "加入我们" };
+const ROUTE_TITLES = { schools: "学校榜单", method: "评分方法论", contact: "加入我们", favs: "我的收藏" };
 let routeToken = 0; /* 路由令牌：慢响应回来时若已切换路由，直接丢弃，不覆盖当前视图 */
 async function route() {
   const t = ++routeToken;
@@ -1164,6 +1261,7 @@ async function route() {
   try {
     if (parts.length === 0) await viewOverview(t);
     else if (parts[0] === "contact") viewContact();
+    else if (parts[0] === "favs") viewFavs();
     else if (parts[0] === "schools") await viewSchools(t);
     else if (parts[0] === "method") await viewMethod(t);
     else if (parts[0] === "school" && parts[1] && !parts[2]) await viewSchool(parts[1], t);

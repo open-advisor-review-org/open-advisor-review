@@ -136,6 +136,15 @@ a:hover { text-decoration: underline; }
 .chip.danger { color: var(--danger); background: var(--danger-bg); border-color: #ffc9cb; }
 .chip.ok { color: var(--ok); background: var(--ok-bg); border-color: #b8e8d6; }
 .chip.ai { color: #4f46e5; background: #f1f0ff; border-color: #d6d4ff; }
+.chip.qs { color: #7a4b00; background: linear-gradient(135deg, #fff7e8, #ffefd0); border-color: #ffd98a; font-family: var(--mono); font-weight: 700; letter-spacing: .02em; }
+
+/* 网评星级分布（导师页） */
+.rate-dist { display: flex; flex-direction: column; gap: 3px; min-width: 200px; flex: 1 1 220px; }
+.rd-row { display: flex; align-items: center; gap: 8px; font-size: 11.5px; }
+.rd-lab { width: 26px; color: var(--muted); font-family: var(--mono); flex: none; }
+.rd-bar { flex: 1; height: 7px; background: var(--line-2); border-radius: 4px; overflow: hidden; }
+.rd-bar i { display: block; height: 100%; background: linear-gradient(90deg, #f5a623, #ffc95e); border-radius: 4px; }
+.rd-n { width: 22px; text-align: right; color: var(--faint); font-family: var(--mono); flex: none; }
 
 /* 分值药丸 */
 .pill {
@@ -329,7 +338,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; backgroun
 .pen-item b { font-family: var(--mono); }
 .base-note { font-size: 12.5px; color: var(--muted); }
 
-.why-grid { display: grid; grid-template-columns: 380px 1fr; gap: 16px; margin-top: 16px; align-items: start; }
+.why-grid { display: grid; grid-template-columns: 380px 1fr; gap: 16px; margin-top: 16px; align-items: start; min-width: 0; }
+.why-grid > * { min-width: 0; } /* grid 子项允许收缩：防窄屏被内容撑出横向滚动 */
 .dim-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .dim-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
 .dim-card .hd { display: flex; align-items: center; gap: 8px; }

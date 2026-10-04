@@ -21,7 +21,7 @@ async function loadJSON(url) {
 }
 const API = "assets/api/";
 /* 共建联系方式（部署前替换为真实仓库/邮箱） */
-const CONTACT = { github: "https://github.com/ze39sbysb4/open-advisor-review", email: "nameless202610@163.com" };
+const CONTACT = { github: "https://github.com/open-advisor-review-org/open-advisor-review", email: "nameless202610@163.com" };
 
 /* ---------- 评分呈现口径 ---------- */
 const DIMS = [

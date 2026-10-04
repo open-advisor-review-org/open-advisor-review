@@ -27,7 +27,7 @@
 ### 路径一：直接看站
 
 ```bash
-git clone https://github.com/ze39sbysb4/open-advisor-review
+git clone https://github.com/open-advisor-review-org/open-advisor-review
 cd open-advisor-review/site
 python -m http.server 8799
 # 浏览器打开 http://127.0.0.1:8799

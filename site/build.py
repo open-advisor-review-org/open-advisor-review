@@ -367,6 +367,15 @@ def main():
     alias_map = {k: v for k, v in load_aux("name_alias.json").items() if not k.startswith("_")}
     report_by_key = lambda uni, sup: match_report(raw_reports, uni, sup)
 
+    # AI 资料初评层（advisor-scorecard-batch SKILL 第八节）：零口碑/无法出口碑分的导师
+    # 由公开资料出资料版综合分（basis=profile），与口碑分全站可区分；榜单均分口径不变。
+    pbmap = {}
+    pbs = sorted(f for f in os.listdir(D) if re.match(r"profile_baseline_\d+\.json$", f))
+    if pbs:
+        pb = json.load(open(os.path.join(D, pbs[-1]), encoding="utf-8"))
+        pbmap = {(e["university"], e["supervisor"]): e for e in pb.get("entries", [])}
+        print("profile_baseline loaded: %s entries=%d" % (pbs[-1], len(pbmap)))
+
     dmap = {(x["university"], x["supervisor"]): x for x in pilot_dir}
     amap = {(x["university"], x["supervisor"]): x for x in pilot_adj}
     tmap = {(a["university"], a["supervisor"]): a for a in advisors}
@@ -387,8 +396,8 @@ def main():
     for rv in reviews:
         revmap[(rv["university"], rv["supervisor"])].append(rv)
 
-    # ---- 全部目标导师键：有评分 ∪ 队列 ∪ AI 核心 ----
-    keys = set(smap) | set(qmap) | set(k for k in aimap if aimap[k].get("tier") == "ai_core")
+    # ---- 全部目标导师键：有评分 ∪ 队列 ∪ AI 核心 ∪ 资料初评覆盖（SKILL 第八节） ----
+    keys = set(smap) | set(qmap) | set(k for k in aimap if aimap[k].get("tier") == "ai_core") | set(pbmap)
 
     school_adv = defaultdict(list)
     cate_cnt = defaultdict(Counter)
@@ -402,15 +411,19 @@ def main():
         dirp = dmap.get((uni, sup))
         ai = aimap.get((uni, sup))
         rl = rmap.get((uni, sup)) or []
+        pb = pbmap.get((uni, sup))
 
         # roster 官方画像（取字段最全的一条）
         r0 = max(rl, key=lambda r: len(r.get("research_areas") or []) + (2 if r.get("title") else 0) + (1 if r.get("homepage") else 0)) if rl else None
         areas_txt = " ".join((r0 or {}).get("research_areas") or []) + " " + " ".join((r0 or {}).get("departments") or []) + " " + (r0 or {}).get("department", "")
         areas_txt += " " + " ".join(a.get("departments") or [])
 
-        # 方向分：试点人工/调研分 > 批量锚点初评（仅 AI 子集或队列内）
+        # 方向分：试点人工/调研分 > 调研实锚复核（overlay）> 批量锚点初评（仅 AI 子集或队列内）> 资料层规则初评
         if dirp and dirp.get("direction_outlook") is not None:
             direction = {"score": dirp["direction_outlook"], "rationale": dirp["rationale"], "basis": "pilot", "discipline": ACTIVE_DISCIPLINE}
+        elif pb and pb.get("overlay_applied") and pb.get("direction_profile"):
+            direction = {"score": pb["direction_profile"]["score"], "rationale": pb["direction_profile"]["rationale"],
+                         "basis": "research", "discipline": ACTIVE_DISCIPLINE}
         elif ai or q:
             sc, why = rule_direction(areas_txt, rubric_anchors(ACTIVE_DISCIPLINE))
             direction = {"score": sc, "rationale": why, "basis": "anchor", "discipline": ACTIVE_DISCIPLINE}
@@ -420,15 +433,62 @@ def main():
         intern_override = adj.get("delta_internship")
         drop_override = adj.get("dropout_override")
         dl = delay_lv.get(uni + "|" + sup)
+        # AI 读评论出分融合（SKILL 8.4）：词表 None 的维用 AI 分补；两有值就低不就高（保守优先）。
+        # 浅拷贝防污染 advisor_scores 原档；evidence 进 dims_ai_meta 供前端标注来源。
+        dims_ai_meta = {}
+        if s and pb:
+            if pb.get("dims_ai"):
+                s = dict(s, dims=dict(s["dims"]))
+                for d_, da in pb["dims_ai"].items():
+                    if not isinstance(da, dict) or da.get("score") is None:
+                        continue
+                    cur = s["dims"].get(d_)
+                    if cur is None or da["score"] < cur:
+                        s["dims"][d_] = da["score"]
+                        dims_ai_meta[d_] = da.get("evidence")
+            if pb.get("internship_ai") and pb["internship_ai"].get("score") is not None and s.get("internship") is None:
+                s = dict(s, internship=pb["internship_ai"]["score"])
+            # 学生前途论文实锚（SKILL 8.5）：口碑 outcome 空时补进口碑综合分
+            if pb.get("outcome_profile") and pb["outcome_profile"].get("score") is not None and s["dims"].get("outcome") is None:
+                s = dict(s, dims=dict(s["dims"], outcome=pb["outcome_profile"]["score"]))
+                dims_ai_meta["outcome"] = pb["outcome_profile"].get("rationale")
+            # 学术成果论文实锚（SKILL 8.3 二次定调：学术以论文为准）：词表失败/空缺时补进口碑综合分；
+            # 纯职称资历档（title_anchor）不进——留在显示层
+            if (pb.get("academics_profile") and pb["academics_profile"].get("basis") == "publication_anchor"
+                    and pb["academics_profile"].get("score") is not None and s["dims"].get("academics") is None):
+                s = dict(s, dims=dict(s["dims"], academics=pb["academics_profile"]["score"]))
+                dims_ai_meta["academics"] = pb["academics_profile"].get("rationale")
         n_rev = s["n_reviews"] if s else 0
         comp = base = pen = None
         penalties = parts = []
+        basis = None
         # 数据可信前提（用户 2026-10-04 定调）：拿到的评价一律采信，任一条即出综合分，不设评数门槛
         if s:
             comp, base, pen, penalties, parts = composite(s, direction["score"] if direction else None,
                                                           intern_override, drop_override, dl)
+            if comp is not None:
+                basis = "review"
+        # AI 资料初评兜底（SKILL 8.3）：零口碑/口碑证据不足以出分时，资料版综合分补位——
+        # (学术资历档×0.55 + 方向×0.15)/0.70 归一，无红线扣分；与口碑分强制可区分
+        if comp is None and pb and pb.get("composite_profile") is not None:
+            parts = []
+            if pb.get("academics_profile"):
+                parts.append({"k": "sev", "label": "学术资历档(AI资料初评)", "v": pb["academics_profile"]["score"], "w": 0.55})
+            if pb.get("direction_profile"):
+                parts.append({"k": "direction", "label": "方向前途(按AI)", "v": pb["direction_profile"]["score"], "w": 0.15})
+            wsum = sum(p["w"] for p in parts)
+            comp = base = round(sum(p["v"] * p["w"] for p in parts) / wsum, 2)
+            pen, penalties = 0, []
+            basis = "profile"
+        # 方向分兜底：口碑维缺失但资料层有方向判读时补上（零口碑卡的方向 chip）
+        if direction is None and pb and pb.get("direction_profile"):
+            direction = {"score": pb["direction_profile"]["score"], "rationale": pb["direction_profile"]["rationale"],
+                         "basis": "anchor", "discipline": ACTIVE_DISCIPLINE}
 
         rvs = revmap.get((uni, sup), [])
+        synth = adj.get("synthesis") or (pb.get("synthesis_profile") if pb else None)
+        if pb and pb.get("synthesis_update"):
+            synth = (synth + "｜AI 读评论补充：" + pb["synthesis_update"]) if synth else pb["synthesis_update"]
         for rv in rvs:
             cate_cnt[uni][rv.get("school_cate") or "其他"] += 1
         rev_payload = []
@@ -458,6 +518,7 @@ def main():
             "sources": a.get("sources") or [],
             "dims": (s["dims"] if s else {}),
             "dims_n": (s.get("dims_n") if s else {}),
+            "dims_ai": dims_ai_meta,
             "internship": {"score": (intern_override if intern_override is not None else (s["internship"] if s else None)),
                            "pos": s["intern_pos_evidence"] if s else 0,
                            "neg": s["intern_neg_evidence"] if s else 0},
@@ -466,9 +527,14 @@ def main():
                         "keywords": s["dropout_keywords"] if s else {},
                         "delay": s["delay_grad_mentions"] if s else 0},
             "direction": direction,
-            "composite": comp, "base": base, "penalty": pen if comp is not None else None,
+            "composite": comp, "base": base,
+            "penalty": (pen if (comp is not None and basis == "review") else None),
             "penalties": penalties, "parts": parts,
-            "synthesis": adj.get("synthesis"),
+            "basis": basis,
+            # 显示层补位（不进口碑计算）：学术资历档/学生前途论文实锚——仅当该维无口碑分时给
+            "academics_profile": (pb.get("academics_profile") if (pb and not (s and s["dims"].get("academics") is not None)) else None),
+            "outcome_profile": (pb.get("outcome_profile") if (pb and not (s and s["dims"].get("outcome") is not None)) else None),
+            "synthesis": synth,
             "freshness": adj.get("freshness"),
             "notes": adj.get("notes"),
             "tier": ai.get("tier") if ai else None,
@@ -504,9 +570,10 @@ def main():
                 if rv.get("dims"):
                     rv["dims"] = {k: _mk(v) for k, v in rv["dims"].items()}
 
-    # ---- 排序：综合分降序（None 沉底）→ 评数 → 姓名 ----
+    # ---- 排序：口碑综合分 > 资料初评分 > 无分；档内综合分降序 → 评数 → 姓名 ----
     def sort_key(r):
-        return (-(r["composite"] if r["composite"] is not None else -99), -r["n_reviews"], r["supervisor"])
+        b = 0 if r["basis"] == "review" else (1 if r["basis"] == "profile" else 2)
+        return (b, -(r["composite"] if r["composite"] is not None else -99), -r["n_reviews"], r["supervisor"])
     for uni in school_adv:
         school_adv[uni].sort(key=sort_key)
 
@@ -515,7 +582,9 @@ def main():
     for uni, recs in school_adv.items():
         sid = sid_of(uni)
         cate = cate_cnt[uni].most_common(1)[0][0] if cate_cnt[uni] else None
-        comps = [r["composite"] for r in recs if r["composite"] is not None]
+        # 榜单口径只收口碑综合分（SKILL 8.3）；资料初评分单列计数
+        comps = [r["composite"] for r in recs if r["basis"] == "review"]
+        n_profile = sum(1 for r in recs if r["basis"] == "profile")
         n_done = sum(1 for r in recs if r["research_status"] == "done")
         n_hard = sum(1 for r in recs if r["dropout"]["hard"])
         # ---- 按学科桶统计（用户 2026-10-04：总榜被没出分/跨学科导师拉偏，榜单按学科切） ----
@@ -525,7 +594,7 @@ def main():
             d = bstat.setdefault(b, {"n": 0, "scored": 0, "reviews": 0, "csum": 0.0, "neg": 0, "deep": 0})
             d["n"] += 1
             d["reviews"] += r["n_reviews"]
-            if r["composite"] is not None:
+            if r["basis"] == "review":
                 d["scored"] += 1
                 d["csum"] += r["composite"]
                 if r["composite"] < 0:
@@ -554,6 +623,7 @@ def main():
             "n_negative": sum(1 for c in comps if c < 0),
             "n_hardflag": n_hard,
             "n_deep_done": n_done,
+            "n_profile": n_profile,
             "roster_total": n_roster_by_uni.get(uni),
             "buckets": buckets, "ai": merge(AI_BUCKETS),
         }
@@ -571,13 +641,14 @@ def main():
         sid = sid_of(uni)
         for r in recs:
             st = r["research_status"] or ("done" if r["synthesis"] else None)
-            srows.append([r["supervisor"], uni, sid, r["id"], r["composite"], r["n_reviews"], st, r.get("alias")])
+            srows.append([r["supervisor"], uni, sid, r["id"], r["composite"], r["n_reviews"], st, r.get("alias"), r["basis"]])
     json.dump(deep_sanitize(srows), open(os.path.join(OUT, "search.json"), "w", encoding="utf-8"),
               ensure_ascii=False, separators=(",", ":"))
 
     # ---- stats.json 总览大盘 ----
     all_recs = [r for recs in school_adv.values() for r in recs]
-    comps = [r["composite"] for r in all_recs if r["composite"] is not None]
+    comps = [r["composite"] for r in all_recs if r["basis"] == "review"]
+    n_profile_total = sum(1 for r in all_recs if r["basis"] == "profile")
     bins = {}
     for c in comps:
         b = min(5, max(-8, int(c))) if c >= 0 else int(c)
@@ -595,7 +666,7 @@ def main():
         vals = [r["dims"][d_] for r in all_recs if r["dims"].get(d_) is not None]
         dims_avg[d_] = round(sum(vals) / len(vals), 2) if vals else None
     src_cnt = Counter(rv.get("source") for rv in reviews)
-    ranked = sorted(all_recs, key=lambda r: (r["composite"] is None, -(r["composite"] or 0), -r["n_reviews"]))
+    ranked = sorted(all_recs, key=lambda r: (r["basis"] != "review", -(r["composite"] or 0), -r["n_reviews"]))
     intern_constrained = sum(1 for r in all_recs if r["internship"]["score"] is not None and r["internship"]["score"] <= 2)
     intern_constrained = sum(1 for r in all_recs if r["internship"]["score"] is not None and r["internship"]["score"] <= 2)
     stats = {
@@ -605,6 +676,7 @@ def main():
             "roster": len(roster), "roster_schools": sum(1 for u in school_adv if n_roster_by_uni.get(u)), "advisors_with_reviews": len([r for r in all_recs if r["n_reviews"] > 0]),
             "reviews": len(reviews), "schools": len(schools),
             "scored": len(comps), "negative": sum(1 for c in comps if c < 0),
+            "profile_scored": n_profile_total,
             "hardflag": sum(1 for r in all_recs if r["dropout"]["hard"]),
             "deep_done": sum(1 for r in all_recs if r["research_status"] == "done"),
             "reports": sum(1 for recs in school_adv.values() for r in recs if r["report"]), "synthesis": sum(1 for r in all_recs if r["synthesis"]),

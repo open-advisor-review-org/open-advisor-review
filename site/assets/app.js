@@ -365,7 +365,7 @@ async function viewOverview() {
     <section class="sec">
       <div class="sec-h"><span class="bar"></span><span class="zh">数据大盘</span><span class="en">Overview</span><span class="desc">数字和图表出自同一份数据：评价存档、官方名录，加上从知乎/小红书/官方页挖来的最新风评</span></div>
       <div class="kpis">
-        <div class="kpi"><div class="lab">${ic("user")} 名录导师</div><div class="num" data-n="${T.roster}">0</div><div class="sub">官方师资页口径</div><svg class="spark" width="70" height="24" viewBox="0 0 70 24">${sparkBars([3, 5, 4, 7, 6, 9, 8])}</svg></div>
+        <div class="kpi"><div class="lab">${ic("user")} 名录导师</div><div class="num" data-n="${T.roster}">0</div><div class="sub">官方师资页口径 · 已覆盖 ${fmt(T.roster_schools || 0)} 所</div><svg class="spark" width="70" height="24" viewBox="0 0 70 24">${sparkBars([3, 5, 4, 7, 6, 9, 8])}</svg></div>
         <div class="kpi"><div class="lab">${ic("school")} 覆盖高校</div><div class="num" data-n="${T.schools}">0</div><div class="sub">含港澳与海外院校</div></div>
         <div class="kpi"><div class="lab">${ic("doc")} 原始评价</div><div class="num" data-n="${T.reviews}">0</div><div class="sub">${esc(stats.sources["urfire_2022"] ? "导师评价网+大查查存档" : "公开存档")}</div></div>
         <div class="kpi"><div class="lab">${ic("radar")} 出分导师</div><div class="num" data-n="${T.scored}">0</div><div class="sub">有一条评价就出综合分</div></div>
@@ -605,7 +605,7 @@ async function viewMethod() {
           <div class="card"><div class="card-h"><span class="zh">数据来源与版本</span><span class="en">Sources</span></div>
             <div class="card-b"><ul class="rule-list">
               <li>${ic("doc")}<span>匿名评价存档：导师评价网（urfire, 2022 快照）${fmt(stats.sources["urfire_2022"] || 0)} 条 + 大查查（2024 快照）${fmt(stats.sources["dachacha_2024"] || 0)} 条。</span></li>
-              <li>${ic("school")}<span>官方师资名录 ${fmt(T.roster)} 条：只从学校官方院系页抓取，每条带确认日期，超过一年没复核的会标出来。</span></li>
+              <li>${ic("school")}<span>官方师资名录 ${fmt(T.roster)} 条：只从学校官方院系页抓取，每条带确认日期，超过一年没复核的会标出来。目前名录深挖覆盖 ${fmt(T.roster_schools || 0)} 所院校（${fmt(T.schools)} 所中的重点校）；其余学校的页面只列出评价存档中出现过的导师，不代表该校全部师资，名录在陆续补采。</span></li>
               <li>${ic("check")}<span><b>全网深挖已完成 ${fmt(T.deep_done)} 人——这是本项目的重心：专挖近三年的新评论和官方最新动态</b>，把存档断档的那几年补上；证据和结论分开存，以后改标准不用重新调查。</span></li>
               <li>${ic("clock")}<span>库快照 VERSION <b class="mono" style="font-family:var(--mono)">${esc(stats.version)}</b> · 站点构建 ${esc(stats.generated)}。</span></li>
             </ul></div>
@@ -742,7 +742,7 @@ async function viewSchool(sid) {
         <div style="font-size:12px;color:var(--faint);margin-top:10px">「基础分」是还没扣红线的口碑分；综合分为负，说明触发了红线扣分。点行进入导师评分卡。</div>
       </div>
     </div>
-    <div class="disclaimer-strip" style="margin-top:20px">${ic("alert", 15)}<span>本校信息来自公开存档和官方名录；「退学硬信号」这些只是匿名评价的统计，未经证实，也不构成对任何导师的定论。</span></div>
+    <div class="disclaimer-strip" style="margin-top:20px">${ic("alert", 15)}<span>本校信息来自公开存档和官方名录；「退学硬信号」这些只是匿名评价的统计，未经证实，也不构成对任何导师的定论。${m.roster_total ? "" : "<b>本校暂未采集官方师资名录</b>——下列导师仅来自评价存档（即有过评价的老师），不是完整师资名单，空缺是采集进度问题，请以学校官网为准。"}</span></div>
   </div>`;
   $("#advQ").addEventListener("input", (e) => { st.q = e.target.value.trim(); render(); });
   $("#advSort").addEventListener("change", (e) => { st.sort = e.target.value; render(); });

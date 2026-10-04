@@ -579,7 +579,7 @@ def main():
         "version": version, "generated": today,
         "disciplines": {"current": ACTIVE_DISCIPLINE, "profiles": DISCIPLINES},
         "totals": {
-            "roster": len(roster), "advisors_with_reviews": len([r for r in all_recs if r["n_reviews"] > 0]),
+            "roster": len(roster), "roster_schools": sum(1 for u in school_adv if n_roster_by_uni.get(u)), "advisors_with_reviews": len([r for r in all_recs if r["n_reviews"] > 0]),
             "reviews": len(reviews), "schools": len(schools),
             "scored": len(comps), "negative": sum(1 for c in comps if c < 0),
             "hardflag": sum(1 for r in all_recs if r["dropout"]["hard"]),

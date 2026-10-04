@@ -15,7 +15,7 @@ const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "19c5b3a1";
+const BUST = "5a5e9dad";
 async function loadJSON(url) {
   if (cache[url]) return cache[url];
   const r = await fetch(url + (url.includes("?") ? "&" : "?") + "v=" + BUST);
@@ -425,7 +425,7 @@ async function viewOverview(t) {
         <div class="kpi"><div class="lab">${ic("user")} 名录导师</div><div class="num" data-n="${T.roster}">0</div><div class="sub">官方师资页口径 · 已覆盖 ${fmt(T.roster_schools || 0)} 所</div><svg class="spark" aria-hidden="true" width="70" height="24" viewBox="0 0 70 24">${sparkBars([3, 5, 4, 7, 6, 9, 8])}</svg></div>
         <div class="kpi"><div class="lab">${ic("school")} 覆盖高校</div><div class="num" data-n="${T.schools}">0</div><div class="sub">含港澳与海外院校</div></div>
         <div class="kpi"><div class="lab">${ic("doc")} 原始评价</div><div class="num" data-n="${T.reviews}">0</div><div class="sub">${esc(stats.sources["urfire_2022"] ? "导师评价网+大查查存档" : "公开存档")}</div></div>
-        <div class="kpi"><div class="lab">${ic("radar")} 出分导师</div><div class="num" data-n="${T.scored}">0</div><div class="sub">有一条评价就出综合分</div></div>
+        <div class="kpi"><div class="lab">${ic("radar")} 出分导师</div><div class="num" data-n="${T.scored}">0</div><div class="sub">有一条评价就出综合分${T.profile_scored ? `；另有 ${fmt(T.profile_scored)} 位零口碑导师出了 AI 资料初评分` : ""}</div></div>
         <div class="kpi red"><div class="lab">${ic("flag")} 负分评分卡</div><div class="num" data-n="${T.negative}">0</div><div class="sub">多为退学、不放实习类信号</div></div>
         <div class="kpi"><div class="lab">${ic("check")} 深挖调研完成</div><div class="num" data-n="${T.deep_done}">0</div><div class="sub">目标覆盖 ${fmt(aiTotal)} 位 AI 导师</div></div>
       </div>
@@ -761,7 +761,7 @@ async function viewSchool(sid, t) {
       </div></td>
       <td style="max-width:150px"><span class="sub" style="display:block;font-size:12px;color:var(--muted)">${esc((a.departments || [])[0] || "—")}</span><span class="sub">${esc(title || "")}</span></td>
       <td style="max-width:190px;font-size:12px;color:var(--muted)"><span class="chip" style="font-size:11px;padding:1px 8px;margin-right:6px">${esc(a.dir_bucket || "未标注")}</span>${areas ? esc(areas.length > 20 ? areas.slice(0, 20) + "…" : areas) : ""}</td>
-      <td>${pill(a.composite)}${a.penalty ? `<span class="sub" style="display:block;font-size:10.5px;color:var(--danger)">红线 ${f1(-a.penalty)}</span>` : ""}</td>
+      <td>${pill(a.composite)}${a.basis === "profile" ? `<span class="sub" style="display:block;font-size:10.5px;color:var(--muted)">AI 资料初评</span>` : a.penalty ? `<span class="sub" style="display:block;font-size:10.5px;color:var(--danger)">红线 ${f1(-a.penalty)}</span>` : ""}</td>
       <td class="num">${a.base != null ? f1(a.base) : "—"}</td>
       <td class="num">${a.rate_avg != null ? f1(a.rate_avg) : "—"}</td>
       <td><div style="display:flex;gap:5px;flex-wrap:wrap">${signalFlags(a) || '<span class="sub">—</span>'}</div></td>
@@ -849,8 +849,11 @@ async function viewAdvisor(sid, aid, t) {
 
   /* ---- 评分卡主色 ---- */
   const C = a.composite;
+  const isProfile = a.basis === "profile";
   const heroCls = C == null ? "na" : C < 0 ? "neg" : C < 2.5 ? "mid" : "pos";
-  const heroNote = C == null
+  const heroNote = isProfile
+    ? "AI 资料初评 · 零学生口碑：官方名录职称 + 研究方向两因子，置信度低于口碑综合分"
+    : C == null
     ? (a.n_reviews > 0 ? "这些评价里没有能用来打分的内容，暂不出综合分" : "评价库里还没有这位的评价，先看官方名录和调研信息")
     : `${a.n_reviews} 条评价 · 网评 rate ${a.rate_avg != null ? f1(a.rate_avg) : "—"} · 基础分 ${f1(a.base)}`;
 
@@ -922,9 +925,20 @@ async function viewAdvisor(sid, aid, t) {
 
   const dimCard = (key, cn, extra) => {
     const v = a.dims[key], n = (a.dims_n || {})[key] || 0;
+    const ap = key === "academics" && v == null && a.academics_profile ? a.academics_profile
+      : key === "outcome" && v == null && a.outcome_profile ? a.outcome_profile : null;
+    const ai = (a.dims_ai || {})[key] || null;
+    const aiLabel = key === "academics" ? "AI 论文实锚出分" : key === "outcome" ? "AI 论文实锚（学生前途）" : "AI 读评论出分";
+    const aiWhy = (key === "academics" || key === "outcome")
+      ? `词表无法归一，由 AI 按近 5 年论文实锚判分。依据：${esc(String(ai).slice(0, 90))}`
+      : `叙述性评论词表无法归一，由 AI 判读打分。依据：「${esc(String(ai).slice(0, 90))}」`;
+    const apLabel = key === "academics" ? "AI 论文/资历档（非口碑）" : "AI 论文实锚（近5年产出，非口碑）";
+    const emptyWhy = a.n_reviews > 0
+      ? "评价里没人把这块说清楚，这一项不计分"
+      : "公开渠道暂无学生反馈——信息缺失，不是安全信号，也不计分";
     return `<div class="dim-card${extra || ""}">
-      <div class="hd"><span class="nm">${cn}</span>${pill(v, 1)}<span class="n">${n ? n + " 条评价命中" : "无有效证据"}</span></div>
-      <div class="why">${v == null ? "评价里没人把这块说清楚，这一项不计分" : `按评价用词打 1–5 分 · 依据 ${n} 条评价`}</div>
+      <div class="hd"><span class="nm">${cn}</span>${ap ? `<span class="pill mid sm">${f1(ap.score)}</span>` : pill(v, 1)}<span class="n">${ap ? apLabel : ai ? aiLabel : n ? n + " 条评价命中" : "无有效证据"}</span></div>
+      <div class="why">${ap ? `口碑维零证据，AI 按${key === "academics" ? "论文实锚（职称资历兜底）评学术成果" : "近5年论文实锚评学生前途"} ${f1(ap.score)}：${esc(ap.rationale || "")}——资料层初评，不进口碑综合分` : ai ? aiWhy : v == null ? emptyWhy : `按评价用词打 1–5 分 · 依据 ${n} 条评价`}</div>
       <div class="quotes">${dimEvidence(key).map((h) => quote(h.t, h.d)).join("")}</div>
     </div>`;
   };
@@ -985,14 +999,14 @@ async function viewAdvisor(sid, aid, t) {
     <!-- 评分主卡 + 红线 -->
     <div class="score-hero">
       <div class="score-big ${heroCls}">
-        <span class="cap">综合分 COMPOSITE${a.penalty ? "（含红线惩罚）" : ""}</span>
+        <span class="cap">综合分 COMPOSITE${isProfile ? "（AI 资料初评）" : a.penalty ? "（含红线惩罚）" : ""}</span>
         <span class="v">${C == null ? "—" : f1(C)}<small> / 5</small></span>
         <span class="note">${esc(heroNote)}</span>
       </div>
       <div class="score-side">
         <div class="pen-row">
           <span class="t">${ic("radar")} 为什么是这个分</span>
-          ${a.parts.length ? `<span class="base-note">基础分 ${f1(a.base)}（加权口碑）</span>` : `<span class="base-note">库内证据不足，无加权口碑分</span>`}
+          ${a.parts.length ? `<span class="base-note">基础分 ${f1(a.base)}（${isProfile ? "AI 资料初评：学术资历档+方向" : "加权口碑"}）</span>` : `<span class="base-note">库内证据不足，无加权口碑分</span>`}
           ${(a.penalties || []).length ? a.penalties.map((p) => `<span class="pen-item">${esc(p.label)} <b>${f1(p.pts)}</b></span>`).join("") : `<span class="chip ok">未触发红线惩罚</span>`}
         </div>
         <div class="pen-row" style="background:var(--surface-2)">
@@ -1039,7 +1053,7 @@ async function viewAdvisor(sid, aid, t) {
           ${dimCard("outcome", "学生前途")}
           <div class="dim-card${a.internship.score != null && a.internship.score <= 2 ? " danger" : ""}">
             <div class="hd"><span class="nm">实习放行</span>${pill(a.internship.score, 1)}<span class="n">正面证据 ${a.internship.pos} · 负面 ${a.internship.neg}</span></div>
-            <div class="why">${a.internship.score == null ? "没有评价提到实习这件事，不计分" : a.internship.score <= 2 ? "有评价提到不让实习或实习受限，扣 1 分；嘴上放行、实际项目多到走不开的也算" : "按正反说法计数打分（5 分 = 明确放实习）"}</div>
+            <div class="why">${a.internship.score == null ? (a.n_reviews > 0 ? "没有评价提到实习这件事，不计分" : "公开渠道暂无实习相关信息——零口碑导师，无据不判") : a.internship.score <= 2 ? "有评价提到不让实习或实习受限，扣 1 分；嘴上放行、实际项目多到走不开的也算" : "按正反说法计数打分（5 分 = 明确放实习）"}</div>
             <div class="quotes">${internEvidence.map((h) => quote(h.t, h.d)).join("")}</div>
           </div>
           <div class="dim-card${a.dropout.hard ? " danger" : ""}">

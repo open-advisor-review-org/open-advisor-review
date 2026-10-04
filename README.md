@@ -39,7 +39,7 @@ python -m http.server 8799
 - **学校榜单**：按学科切桶（默认「AI 方向汇总」，可切 LLM / CV·NLP / 机器人 / 传统ML / 网安 / 其他CS 等）
 - **导师评分卡**：综合分组成与权重瀑布、九维雷达、**逐维证据引用（评价原文）**、实习/退学硬信号计数、AI 综合判读、调研截止时间、原始评价存档
 
-托管到 GitHub Pages：把 `site/` 目录推上仓库，Settings → Pages 选分支即可。也欢迎镜像。
+托管到 GitHub Pages：仓库已附带部署工作流（`.github/workflows/pages.yml`，部署 `site/` 子目录），到 Settings → Pages 把 Source 选成 **GitHub Actions** 即可。也欢迎镜像。
 
 ### 路径二：装上 skill，让 AI 帮你调研任何导师
 

@@ -95,6 +95,11 @@ a:hover { text-decoration: underline; }
 .nav-gh { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); font-weight: 500;
   border: 1px solid var(--line); padding: 6px 12px; border-radius: 9px; }
 .nav-gh:hover { border-color: var(--brand-2); color: var(--brand); text-decoration: none; }
+.nav-burger {
+  display: none; align-items: center; justify-content: center; width: 38px; height: 38px; flex: none;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink-2); cursor: pointer;
+}
+.nav-burger:hover { border-color: var(--brand-2); color: var(--brand); }
 
 /* ============ 通用组件 ============ */
 .card {
@@ -440,20 +445,36 @@ footer { margin-top: 64px; border-top: 1px solid var(--line); background: #fff; 
 @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* ============ 响应式 ============ */
+/* 键盘可达元素的焦点轮廓（tr/fchip/review-hd 均可 Tab 进入） */
+.fchip:focus-visible, tr.clickable:focus-visible, .review-hd:focus-visible,
+.nav-burger:focus-visible, .search-pop .item:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+
 @media (max-width: 1024px) {
   .kpis { grid-template-columns: repeat(3, 1fr); }
   .grid-4 { grid-template-columns: 1fr 1fr; }
   .score-hero, .why-grid, .method-grid, .grid-2 { grid-template-columns: 1fr; }
   .sch-kpis { grid-template-columns: repeat(3, 1fr); }
   .hero h1 { font-size: 36px; }
-  .nav-links { display: none; }
+  /* 导航链接收进汉堡菜单（不再直接消失） */
+  .nav-burger { display: inline-flex; }
+  .nav-links {
+    display: none; position: absolute; top: 100%; left: 0; right: 0; margin: 0;
+    flex-direction: column; align-items: stretch; gap: 2px;
+    background: #fff; border-bottom: 1px solid var(--line); box-shadow: var(--shadow-lg);
+    padding: 10px 16px 14px;
+  }
+  .nav-links.open { display: flex; }
+  .nav-links a { padding: 11px 12px; font-size: 15px; }
 }
 @media (max-width: 640px) {
   .kpis, .grid-4 { grid-template-columns: 1fr 1fr; }
   .dim-cards { grid-template-columns: 1fr; }
   .hero h1 { font-size: 30px; }
-  .nav-search { width: 160px; }
   .sch-kpis { grid-template-columns: 1fr 1fr; }
+  /* 导航换行：logo + 开源 + 汉堡一行，搜索框独占第二行（避免被压到 ~100px 不可用） */
+  .nav-in { flex-wrap: wrap; height: auto; padding: 10px 16px; row-gap: 10px; }
+  .nav-gh { margin-left: auto; }
+  .nav-search { order: 5; width: 100%; margin-left: 0; }
 }
 
 /* 快捷入口卡 */

@@ -11,8 +11,11 @@ const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&":
 const ic = (n, s) => `<svg width="${s || 16}" height="${s || 16}" style="vertical-align:-2px"><use href="#i-${n}"/></svg>`;
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("zh-CN"));
 const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
+/* 存档评价原文偶带 HTML 碎片（如 `</a><!-- m -->`）：显示前按常见标签白名单清掉（转义照常做，无安全影响，只为不见脏字符） */
+const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
+const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "2";
+const BUST = "dc86aba8";
 async function loadJSON(url) {
   if (cache[url]) return cache[url];
   const r = await fetch(url + (url.includes("?") ? "&" : "?") + "v=" + BUST);
@@ -123,7 +126,7 @@ function chartHist(bins, { w = 560, h = 210, negFrom = -8 } = {}) {
     bars += `<line x1="${padL}" y1="${y}" x2="${w - 8}" y2="${y}" stroke="#eef3fb"/>`;
     bars += `<text class="axis" x="${padL - 6}" y="${y + 3}" text-anchor="end">${fmt(Math.round(max * (1 - i / 3)))}</text>`;
   }
-  return `<svg viewBox="0 0 ${w} ${h}" class="bar-anim"><defs>
+  return `<svg viewBox="0 0 ${w} ${h}" class="bar-anim" role="img" aria-label="综合分分布直方图"><defs>
     <linearGradient id="gBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f9bff"/><stop offset="1" stop-color="#0b5cff"/></linearGradient>
     <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a5c"/><stop offset="1" stop-color="#e5484d"/></linearGradient>
   </defs>${bars}</svg>`;
@@ -147,7 +150,7 @@ function chartTimeline(items, { w = 560, h = 190, cyan = false, tipWord = "条�
     s += `<line x1="${padL}" y1="${y}" x2="${w - 10}" y2="${y}" stroke="#eef3fb"/>`;
     s += `<text class="axis" x="${padL - 6}" y="${y + 3}" text-anchor="end">${fmt(Math.round(max * (1 - i / 2)))}</text>`;
   }
-  return `<svg viewBox="0 0 ${w} ${h}" class="bar-anim"><defs>
+  return `<svg viewBox="0 0 ${w} ${h}" class="bar-anim" role="img" aria-label="评价年份分布柱状图"><defs>
     <linearGradient id="gBlue2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff"/><stop offset="1" stop-color="#1a8cff"/></linearGradient>
     <linearGradient id="gCyan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3ee0ff"/><stop offset="1" stop-color="#00a8cc"/></linearGradient>
   </defs>${s}</svg>`;
@@ -164,7 +167,7 @@ function chartHbar(rows, { w = 520, maxV = 5, unit = "" } = {}) {
     if (r.v != null) s += `<rect x="${padL}" y="${y}" width="${Math.max(3, bw).toFixed(1)}" height="18" rx="5" fill="url(#gBlue)" data-tip="${esc(r.label)}：${f1(r.v)}${unit} · ${r.tip || ""}"/>`;
     s += `<text class="axis" x="${padL + Math.max(3, bw) + 8}" y="${y + 13}" font-size="12" fill="#0b5cff" font-weight="700">${r.v == null ? "—" : f1(r.v)}</text>`;
   });
-  return `<svg viewBox="0 0 ${w} ${h}" class="bar-anim"><defs><linearGradient id="gBlue" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0b5cff"/><stop offset="1" stop-color="#2f9bff"/></linearGradient></defs>${s}</svg>`;
+  return `<svg viewBox="0 0 ${w} ${h}" class="bar-anim" role="img" aria-label="维度均分横向条形图"><defs><linearGradient id="gBlue" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0b5cff"/><stop offset="1" stop-color="#2f9bff"/></linearGradient></defs>${s}</svg>`;
 }
 function chartDonut(kv, { size = 190 } = {}) {
   const colors = { "985": "#0b5cff", "211": "#2f9bff", "其他": "#8fb3e8", "研究机构": "#64748f", "海外": "#00c2ff" };
@@ -179,7 +182,7 @@ function chartDonut(kv, { size = 190 } = {}) {
     segs += `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}" fill="none" stroke="${colors[k] || "#93a3c0"}" stroke-width="22" data-tip="${esc(k)}：${fmt(v)} 条（${(v / total * 100).toFixed(1)}%）"/>`;
     a0 = a1;
   });
-  return `<svg viewBox="0 0 ${size} ${size}" style="max-width:${size}px">${segs}
+  return `<svg viewBox="0 0 ${size} ${size}" style="max-width:${size}px" role="img" aria-label="评价来源院校层级环形图">${segs}
     <text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="21" font-weight="800" fill="#0b1c3d">${fmt(total)}</text>
     <text x="${cx}" y="${cy + 15}" text-anchor="middle" font-size="10.5" fill="#93a3c0">评价总数</text></svg>`;
 }
@@ -209,7 +212,7 @@ function chartRadar(items, { size = 400 } = {}) {
     const [x, y] = pt(i, it.v == null ? 0 : it.v);
     s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${it.v == null ? "#c3cede" : "#0b5cff"}"/>`;
   });
-  return `<svg viewBox="0 0 ${size} ${size}" style="max-width:${size}px;width:100%">${s}</svg>`;
+  return `<svg viewBox="0 0 ${size} ${size}" style="max-width:${size}px;width:100%" role="img" aria-label="导师多维画像雷达图">${s}</svg>`;
 }
 function sparkBars(vals, { w = 70, h = 24, color = "#0b5cff" } = {}) {
   const max = Math.max(...vals, 1);
@@ -239,8 +242,10 @@ function mdRender(md) {
       while (i < lines.length && /^\|.*\|$/.test(lines[i].trim())) { rows.push(lines[i].trim()); i++; }
       i--;
       const cells = (r) => r.slice(1, -1).split("|");
+      /* |---|---| 式分隔行按内容识别：无分隔行的表格不再丢掉第一行数据 */
+      const isSepRow = (r) => /^[\s|:-]+$/.test(r) && r.includes("-");
       let t = "<table><thead><tr>" + cells(rows[0]).map((c) => `<th>${inline(c.trim())}</th>`).join("") + "</tr></thead><tbody>";
-      for (let r = 2; r < rows.length; r++) t += "<tr>" + cells(rows[r]).map((c) => `<td>${inline(c.trim())}</td>`).join("") + "</tr>";
+      for (let r = isSepRow(rows[1] || "") ? 2 : 1; r < rows.length; r++) t += "<tr>" + cells(rows[r]).map((c) => `<td>${inline(c.trim())}</td>`).join("") + "</tr>";
       out += t + "</tbody></table>";
     }
     else if (/^[-*]\s+/.test(L)) {
@@ -261,21 +266,34 @@ function mdRender(md) {
 
 /* ---------- 全局搜索 ---------- */
 const Search = (() => {
-  let rows = null, schoolsMap = null, activeIdx = -1, items = [];
-  async function ensure() {
-    if (rows) return;
-    [rows, schoolsMap] = await Promise.all([
+  let rows = null, schoolsMap = null, activeIdx = -1, items = [], readyP = null, docClickBound = false;
+  /* 首次触发才加载 1.4MB 索引；readyP 共享同一 Promise，并发调用不会重复拉取 */
+  function ensure() {
+    if (!readyP) readyP = Promise.all([
       loadJSON(API + "search.json"),
       loadJSON(API + "schools.json").then((ss) => Object.fromEntries(ss.map((s) => [s.sid, s]))),
-    ]);
+    ]).then(([r, m]) => { rows = r; schoolsMap = m; });
+    return readyP;
   }
   function attach(box) {
     const input = $("input", box), pop = $(".search-pop", box);
     let deb;
-    input.addEventListener("focus", () => { ensure(); run(); });
-    input.addEventListener("input", () => { clearTimeout(deb); deb = setTimeout(run, 120); });
+    /* 索引未就绪时先显示加载态，就绪后自动补查当前输入（不再静默丢弃首次输入） */
+    async function runReady() {
+      if (rows) return run();
+      if (input.value.trim()) {
+        pop.innerHTML = `<div class="empty">正在加载搜索索引…</div>`;
+        pop.classList.add("show");
+      }
+      await ensure();
+      if (document.activeElement !== input) return;
+      if (input.value.trim()) run(); else pop.classList.remove("show");
+    }
+    input.addEventListener("focus", runReady);
+    input.addEventListener("input", () => { clearTimeout(deb); deb = setTimeout(runReady, 120); });
     const goBtn = $(".go", box);
     if (goBtn) goBtn.addEventListener("click", async () => {
+      if (!input.value.trim()) { input.focus(); pop.classList.remove("show"); return; }
       await ensure();
       run();
       if (items[0]) go(items[0]);
@@ -287,7 +305,12 @@ const Search = (() => {
       else if (e.key === "Enter") { e.preventDefault(); if (items[activeIdx]) { go(items[activeIdx]); } }
       else if (e.key === "Escape") pop.classList.remove("show");
     });
-    document.addEventListener("click", (e) => { if (!box.contains(e.target)) pop.classList.remove("show"); });
+    if (!docClickBound) {
+      docClickBound = true; /* 只绑一次：反复进出首页不再累积 document 监听 */
+      document.addEventListener("click", (e) => {
+        $$(".search-pop.show").forEach((p) => { if (!p.parentElement.contains(e.target)) p.classList.remove("show"); });
+      });
+    }
     function move(d) {
       activeIdx = Math.max(0, Math.min(items.length - 1, activeIdx + d));
       $$(".item", pop).forEach((el, i) => el.classList.toggle("act", i === activeIdx));
@@ -297,7 +320,7 @@ const Search = (() => {
     function run() {
       const q = input.value.trim().toLowerCase();
       activeIdx = -1;
-      if (!q || !rows) { pop.classList.remove("show"); return; }
+      if (!q || !rows) { items = []; pop.classList.remove("show"); return; } /* 空查询也清空共享 items，杜绝跳到上一次结果 */
       const nameHit = (r) => String(r[0]).toLowerCase().includes(q) || (r[7] && String(r[7]).toLowerCase().includes(q));
       const uniHit = (r) => String(r[1]).toLowerCase().includes(q);
       const adv = rows.filter((r) => nameHit(r)).slice(0, 9);
@@ -326,11 +349,33 @@ const Search = (() => {
 })();
 Search.attach($("#navSearch"));
 
+/* ---------- 移动端汉堡菜单（≤1024px 导航收进下拉面板） ---------- */
+(() => {
+  const burger = $("#navBurger"), links = $("#navLinks");
+  if (!burger || !links) return;
+  const setOpen = (open) => { links.classList.toggle("open", open); burger.setAttribute("aria-expanded", String(open)); };
+  burger.addEventListener("click", (e) => { e.stopPropagation(); setOpen(!links.classList.contains("open")); });
+  links.addEventListener("click", (e) => { if (e.target.closest("a")) setOpen(false); });
+  document.addEventListener("click", (e) => { if (!e.target.closest(".nav")) setOpen(false); });
+})();
+
+/* ---------- 表格行 / 折叠条：点击委托 + 键盘可达 ---------- */
+document.addEventListener("click", (e) => {
+  const tr = e.target.closest && e.target.closest("tr.clickable[data-href]");
+  if (tr) location.hash = tr.dataset.href;
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const el = e.target.closest && (e.target.closest("tr.clickable[data-href]") || e.target.closest("[role=button][tabindex]"));
+  if (el) { e.preventDefault(); el.click(); }
+});
+
 /* ============================================================
    视图：数据大盘（首页只放核心数字与分布）
    ============================================================ */
-async function viewOverview() {
+async function viewOverview(t) {
   const [stats, schools] = await Promise.all([loadJSON(API + "stats.json"), loadJSON(API + "schools.json")]);
+  if (t !== routeToken) return;
   $("#footVer").textContent = "库快照 VERSION " + stats.version;
   $("#footGen").textContent = "站点数据生成 " + stats.generated;
   const T = stats.totals;
@@ -366,7 +411,7 @@ async function viewOverview() {
     <section class="sec">
       <div class="sec-h"><span class="bar"></span><span class="zh">数据大盘</span><span class="en">Overview</span><span class="desc">数字和图表出自同一份数据：评价存档、官方名录，加上从知乎/小红书/官方页挖来的最新风评</span></div>
       <div class="kpis">
-        <div class="kpi"><div class="lab">${ic("user")} 名录导师</div><div class="num" data-n="${T.roster}">0</div><div class="sub">官方师资页口径 · 已覆盖 ${fmt(T.roster_schools || 0)} 所</div><svg class="spark" width="70" height="24" viewBox="0 0 70 24">${sparkBars([3, 5, 4, 7, 6, 9, 8])}</svg></div>
+        <div class="kpi"><div class="lab">${ic("user")} 名录导师</div><div class="num" data-n="${T.roster}">0</div><div class="sub">官方师资页口径 · 已覆盖 ${fmt(T.roster_schools || 0)} 所</div><svg class="spark" aria-hidden="true" width="70" height="24" viewBox="0 0 70 24">${sparkBars([3, 5, 4, 7, 6, 9, 8])}</svg></div>
         <div class="kpi"><div class="lab">${ic("school")} 覆盖高校</div><div class="num" data-n="${T.schools}">0</div><div class="sub">含港澳与海外院校</div></div>
         <div class="kpi"><div class="lab">${ic("doc")} 原始评价</div><div class="num" data-n="${T.reviews}">0</div><div class="sub">${esc(stats.sources["urfire_2022"] ? "导师评价网+大查查存档" : "公开存档")}</div></div>
         <div class="kpi"><div class="lab">${ic("radar")} 出分导师</div><div class="num" data-n="${T.scored}">0</div><div class="sub">有一条评价就出综合分</div></div>
@@ -402,8 +447,8 @@ async function viewOverview() {
               ${chartTimeline(stats.timeline_social, { h: 104, cyan: true, tipWord: "条新证据" })}
             </div>` : ""}
           </div></div>
-        <div class="card"><div class="card-h"><span class="zh">全库七维均分</span><span class="en">Dimension Averages</span></div>
-          <div class="card-b">${chartHbar(dimRows)}<div style="font-size:12px;color:var(--faint);margin-top:6px">按评价用词打 1–5 分；「不清楚」这类不算数</div></div></div>
+        <div class="card"><div class="card-h"><span class="zh">全库六维口碑均分</span><span class="en">Dimension Averages</span></div>
+          <div class="card-b">${chartHbar(dimRows)}<div style="font-size:12px;color:var(--faint);margin-top:6px">按评价用词打 1–5 分；「不清楚」这类不算数；「自证认识」一维只用于确认评价真实性，不计入均分</div></div></div>
         <div class="card"><div class="card-h"><span class="zh">评价来源院校层级</span><span class="en">By Institution Tier</span></div>
           <div class="card-b" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
             ${chartDonut(cateKv)}
@@ -440,8 +485,9 @@ async function viewOverview() {
 /* ============================================================
    视图：学校榜单（独立页，按学科切换）
    ============================================================ */
-async function viewSchools() {
+async function viewSchools(t) {
   const schools = await loadJSON(API + "schools.json");
+  if (t !== routeToken) return;
   const BUCKETS = ["LLM/大模型", "CV/NLP经典", "机器人/具身", "传统ML/挖掘", "网络安全/系统", "其他CS方向", "电子信息/通信", "自动化/控制", "其他学科（非AI）"];
   const bucketChips = [["ai", "AI 方向汇总"], ...BUCKETS.map((b) => [b, b])];
   const rankModes = [
@@ -470,7 +516,7 @@ async function viewSchools() {
     $("#rankBody").innerHTML = list.map((s, i) => {
       const d = statOf(s);
       return `
-      <tr class="clickable" onclick="location.hash='#/school/${s.sid}'">
+      <tr class="clickable" role="link" tabindex="0" data-href="#/school/${s.sid}">
         <td class="num" style="color:var(--faint)">${i + 1}</td>
         <td><span class="name">${esc(s.name)}</span></td>
         <td>${cateChip(s.cate)}</td>
@@ -498,10 +544,10 @@ async function viewSchools() {
     <div class="card">
       <div class="card-b" style="padding-top:14px">
         <div class="toolbar">
-          <div class="fchips" id="bucketTabs">${bucketChips.map(([k, lab]) => `<span class="fchip${k === st.bucket ? " on" : ""}" data-k="${k}">${lab}</span>`).join("")}<span class="fchip" data-k="">全部学科</span></div>
+          <div class="fchips" id="bucketTabs">${bucketChips.map(([k, lab]) => `<span class="fchip${k === st.bucket ? " on" : ""}" role="button" tabindex="0" data-k="${k}">${lab}</span>`).join("")}<span class="fchip" role="button" tabindex="0" data-k="">全部学科</span></div>
         </div>
         <div class="toolbar">
-          <div class="fchips" id="rankTabs">${rankModes.map(([k, lab]) => `<span class="fchip${k === st.rankMode ? " on" : ""}" data-k="${k}">${lab}</span>`).join("")}</div>
+          <div class="fchips" id="rankTabs">${rankModes.map(([k, lab]) => `<span class="fchip${k === st.rankMode ? " on" : ""}" role="button" tabindex="0" data-k="${k}">${lab}</span>`).join("")}</div>
           <input type="text" id="rankQ" placeholder="筛选学校名…" style="margin-left:auto">
           <button class="btn sm" id="rankMore">显示全部</button>
           <span style="font-size:12.5px;color:var(--muted)">显示 <b id="rankCount">—</b> 所</span>
@@ -534,8 +580,9 @@ async function viewSchools() {
 /* ============================================================
    视图：方法论（项目定位 + 口径 + 学科配置）
    ============================================================ */
-async function viewMethod() {
+async function viewMethod(t) {
   const stats = await loadJSON(API + "stats.json");
+  if (t !== routeToken) return;
   $("#footVer").textContent = "库快照 VERSION " + stats.version;
   $("#footGen").textContent = "站点数据生成 " + stats.generated;
   const T = stats.totals;
@@ -585,7 +632,7 @@ async function viewMethod() {
             <div class="card-b">
               <div class="formula-box">综合分 = ( <span class="hl">七维口碑均分</span>×<span class="wg">0.55</span> + <span class="hl">实习放行</span>×<span class="wg">0.15</span> + <span class="hl">退学风险</span>×<span class="wg">0.15</span> + <span class="hl">方向前途(按AI)</span>×<span class="wg">0.15</span> ) / Σ权重<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;− <span style="color:#ff8a8d">红线阶梯扣分</span><br><span style="color:#7d93bd">// 有一条评价就计分；缺的项按剩余权重折算；只有综合分可能是负的</span></div>
               <ul class="rule-list" style="margin-top:10px">
-                <li>${ic("check")}七维口碑：学术水平、科研经费、学生补助、师生关系、工作时间、学生前途——按评价原文的用词打 1–5 分。</li>
+                <li>${ic("check")}七维口碑：其中「自证认识」一维只用于确认评价真实性、不计分；学术水平、科研经费、学生补助、师生关系、工作时间、学生前途这六维按评价原文的用词打 1–5 分。</li>
                 <li>${ic("check")}实习放行：看正反说法各有多少条；嘴上说放、实际项目多到走不开的，按受限算。</li>
                 <li>${ic("check")}方向前途：按方向基准分打（LLM 相关 3.5、CV/NLP 3、传统机器学习 2.5、传统优化 2），再看导师近 5 年的研究贴不贴主赛道，不贴就减分。</li>
               </ul>
@@ -648,14 +695,17 @@ async function viewMethod() {
 /* ============================================================
    视图二：学校页
    ============================================================ */
-async function viewSchool(sid) {
+async function viewSchool(sid, t) {
   const app = $("#app");
   app.innerHTML = `<div class="loading"><div class="ring"></div>加载学校数据…</div>`;
   let data;
   try { data = await loadJSON(API + "school/" + sid + ".json"); }
-  catch (e) { app.innerHTML = `<div class="wrap"><div class="empty-state" style="padding-top:80px">未找到该学校（数据可能尚未构建）<br><br><a href="#/">← 返回总览</a></div></div>`; return; }
+  catch (e) { if (t === routeToken) app.innerHTML = `<div class="wrap"><div class="empty-state" style="padding-top:80px">未找到该学校（数据可能尚未构建）<br><br><a href="#/">← 返回总览</a></div></div>`; return; }
+  if (t !== routeToken) return;
   const m = data.meta, list = data.advisors;
+  document.title = `${m.name} · ${SITE_TITLE}`;
   $("#footVer").textContent = "库快照 VERSION " + (await loadJSON(API + "stats.json")).version;
+  if (t !== routeToken) return;
 
   /* 过滤与排序状态 */
   let st = { q: "", sort: "composite", dir: "", filters: new Set() };
@@ -693,7 +743,7 @@ async function viewSchool(sid) {
     const areas = (a.roster && a.roster.areas || []).slice(0, 3).join("、");
     const title = a.roster && a.roster.title || "";
     return `
-    <tr class="clickable" onclick="location.hash='#/school/${sid}/${a.id}'">
+    <tr class="clickable" role="link" tabindex="0" data-href="#/school/${sid}/${a.id}">
       <td><div style="display:flex;align-items:center;gap:9px">
         <span style="width:30px;height:30px;border-radius:8px;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;flex:none">${esc(a.supervisor.trim()[0] || "?")}</span>
         <span><span class="name">${esc(a.supervisor)}</span>${a.alias ? `<span class="sub" style="display:inline-block;margin-left:4px;color:var(--muted)">${esc(a.alias)}</span>` : ""}<span class="sub" style="display:block">${a.n_reviews ? fmt(a.n_reviews) + " 条评价" : "库内无评价"}</span></span>
@@ -741,7 +791,7 @@ async function viewSchool(sid) {
           <input type="text" id="advQ" placeholder="校内搜索导师/方向…" value="${esc(st.q)}">
           <select id="advDir"><option value="">全部方向</option>${DIR_ORDER.filter(d => list.some(a => a.dir_bucket === d)).map(d => `<option value="${d}"${d === st.dir ? " selected" : ""}>${d}（${list.filter(a => a.dir_bucket === d).length}）</option>`).join("")}</select>
           <select id="advSort">${sorts.map(([k, lab]) => `<option value="${k}"${k === st.sort ? " selected" : ""}>${lab}</option>`).join("")}</select>
-          <div class="fchips">${filters.map(([k, lab, d]) => `<span class="fchip${d ? " danger" : ""}" data-k="${k}">${lab}</span>`).join("")}</div>
+          <div class="fchips">${filters.map(([k, lab, d]) => `<span class="fchip${d ? " danger" : ""}" role="button" tabindex="0" data-k="${k}">${lab}</span>`).join("")}</div>
           <span style="margin-left:auto;font-size:12.5px;color:var(--muted)">显示 <b id="advCount">—</b> 位导师</span>
         </div>
         <div class="tbl-wrap" style="max-height:640px">
@@ -770,15 +820,17 @@ async function viewSchool(sid) {
 /* ============================================================
    视图三：导师详情（详细评分 + 为什么这样打分）
    ============================================================ */
-async function viewAdvisor(sid, aid) {
+async function viewAdvisor(sid, aid, t) {
   const app = $("#app");
   app.innerHTML = `<div class="loading"><div class="ring"></div>加载评分卡…</div>`;
   let data;
   try { data = await loadJSON(API + "school/" + sid + ".json"); }
-  catch (e) { app.innerHTML = `<div class="wrap"><div class="empty-state" style="padding-top:80px">未找到该页面<br><br><a href="#/">← 返回总览</a></div></div>`; return; }
+  catch (e) { if (t === routeToken) app.innerHTML = `<div class="wrap"><div class="empty-state" style="padding-top:80px">未找到该页面<br><br><a href="#/">← 返回总览</a></div></div>`; return; }
+  if (t !== routeToken) return;
   const a = data.advisors.find((x) => x.id === aid);
-  if (!a) { app.innerHTML = `<div class="wrap"><div class="empty-state" style="padding-top:80px">未找到该导师<br><br><a href="#/school/${sid}">← 返回学校页</a></div></div>`; return; }
+  if (!a) { if (t === routeToken) app.innerHTML = `<div class="wrap"><div class="empty-state" style="padding-top:80px">未找到该导师<br><br><a href="#/school/${sid}">← 返回学校页</a></div></div>`; return; }
   const m = data.meta;
+  document.title = `${a.supervisor} · ${m.name} · ${SITE_TITLE}`;
 
   /* ---- 头部 ---- */
   const stars = a.rate_avg != null ? "★".repeat(Math.round(a.rate_avg)) + "☆".repeat(5 - Math.round(a.rate_avg)) : "";
@@ -820,7 +872,11 @@ async function viewAdvisor(sid, aid) {
   ];
 
   /* ---- 证据引用 ---- */
-  const quote = (txt, d) => txt ? `<div class="quote">「${esc(txt.length > 120 ? txt.slice(0, 120) + "…" : txt)}」<span class="d"> ${esc(d || "日期不明")}</span></div>` : "";
+  const quote = (txt, d) => {
+    if (!txt) return "";
+    const t = cleanFrag(txt);
+    return `<div class="quote">「${esc(t.length > 120 ? t.slice(0, 120) + "…" : t)}」<span class="d"> ${esc(d || "日期不明")}</span></div>`;
+  };
   const dimEvidence = (key) => {
     const hits = [];
     for (const r of a.reviews || []) {
@@ -874,15 +930,17 @@ async function viewAdvisor(sid, aid) {
   /* ---- 评价列表 ---- */
   const reviewCards = (a.reviews || []).map((r, i) => `
     <div class="review-card${i < 2 ? " open" : ""}">
-      <div class="review-hd" onclick="this.parentElement.classList.toggle('open')">
+      <div class="review-hd" role="button" tabindex="0" onclick="this.parentElement.classList.toggle('open')">
         <span class="rate" style="color:${r.rate == null ? "var(--faint)" : r.rate >= 3.5 ? "var(--ok)" : r.rate >= 2.5 ? "var(--warn)" : "var(--danger)"}">${r.rate != null ? f1(r.rate) : "无分"}</span>
         <span class="stars">${r.rate != null ? "★".repeat(Math.round(r.rate)) + "☆".repeat(5 - Math.round(r.rate)) : ""}</span>
         <span class="sub">${esc(r.date || "日期不明")}</span>
         ${i < 2 ? '<span class="chip">最新</span>' : ""}
         <span class="src">${esc(SRC_CN[r.source] || r.source || "")}</span>
       </div>
-      <div class="review-bd">${Object.entries(r.dims || {}).map(([k, v]) => `
-        <div class="row"><span class="k">${esc(REV_DIM_CN[k] || k)}</span><span class="v">${esc(v.length > 400 ? v.slice(0, 400) + "…" : v)}</span></div>`).join("") || '<div class="row"><span class="k">原文</span><span class="v">（无分维度文本）</span></div>'}
+      <div class="review-bd">${Object.entries(r.dims || {}).map(([k, v]) => {
+        const t = cleanFrag(v);
+        return `<div class="row"><span class="k">${esc(REV_DIM_CN[k] || k)}</span><span class="v">${esc(t.length > 400 ? t.slice(0, 400) + "…" : t)}</span></div>`;
+      }).join("") || '<div class="row"><span class="k">原文</span><span class="v">（无分维度文本）</span></div>'}
       </div>
     </div>`).join("");
 
@@ -1069,22 +1127,27 @@ function viewContact() {
 /* ============================================================
    路由
    ============================================================ */
+const SITE_TITLE = "AI 导师评价库 · 开源版";
+const ROUTE_TITLES = { schools: "学校榜单", method: "评分方法论", contact: "加入我们" };
+let routeToken = 0; /* 路由令牌：慢响应回来时若已切换路由，直接丢弃，不覆盖当前视图 */
 async function route() {
+  const t = ++routeToken;
   const h = location.hash || "#/";
   const parts = h.replace(/^#\//, "").split("/").filter(Boolean);
   $$(".nav-links a").forEach((x) => x.classList.toggle("on", (x.dataset.nav === "/" && parts.length === 0) || (x.dataset.nav && x.dataset.nav !== "/" && parts[0] === x.dataset.nav)));
+  document.title = ROUTE_TITLES[parts[0]] ? `${ROUTE_TITLES[parts[0]]} · ${SITE_TITLE}` : SITE_TITLE;
   try {
-    if (parts.length === 0) await viewOverview();
+    if (parts.length === 0) await viewOverview(t);
     else if (parts[0] === "contact") viewContact();
-    else if (parts[0] === "schools") await viewSchools();
-    else if (parts[0] === "method") await viewMethod();
-    else if (parts[0] === "school" && parts[1] && !parts[2]) await viewSchool(parts[1]);
-    else if (parts[0] === "school" && parts[1] && parts[2]) await viewAdvisor(parts[1], parts[2]);
-    else await viewOverview();
+    else if (parts[0] === "schools") await viewSchools(t);
+    else if (parts[0] === "method") await viewMethod(t);
+    else if (parts[0] === "school" && parts[1] && !parts[2]) await viewSchool(parts[1], t);
+    else if (parts[0] === "school" && parts[1] && parts[2]) await viewAdvisor(parts[1], parts[2], t);
+    else await viewOverview(t);
   } catch (e) {
     $("#app").innerHTML = `<div class="wrap"><div class="empty-state" style="padding-top:80px">加载失败：${esc(e.message)}<br><br><a href="#/">← 返回总览</a></div></div>`;
   }
-  if (parts.length > 0) window.scrollTo(0, 0);
+  if (parts.length > 0 && t === routeToken) window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", route);
 route();

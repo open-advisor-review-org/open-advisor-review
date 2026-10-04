@@ -12,7 +12,7 @@ const ic = (n, s) => `<svg width="${s || 16}" height="${s || 16}" style="vertica
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("zh-CN"));
 const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const cache = {};
-const BUST = "2";
+const BUST = "1bbd3486";
 async function loadJSON(url) {
   if (cache[url]) return cache[url];
   const r = await fetch(url + (url.includes("?") ? "&" : "?") + "v=" + BUST);

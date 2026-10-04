@@ -346,7 +346,20 @@ def main():
     pilot_dir = load("pilot_direction_scores.json")["scores"]
     pilot_adj = load("pilot_signal_adjustments.json")["adjustments"]
     delay_lv = load("delay_level_20261003.json")
-    queue = load("batch_queue_20261002.json")["queue"]
+    # 调研队列：合并所有批次文件（进度不再冻结在某一期）。
+    # 批次语义：一期 batch_queue_20261002 = 深挖批（重点 AI 导师+硬flag 全量，全网深扒流程）；
+    # 之后 v2/v3… = 轻调研批（长尾 1-2 评导师，官方确认+风评抽查）。
+    queue, deep_keys, light_keys = [], set(), set()
+    for qname in sorted(f for f in os.listdir(D) if f.startswith("batch_queue") and f.endswith(".json")):
+        try:
+            entries = load(qname)["queue"]
+        except Exception:
+            continue
+        light = qname != "batch_queue_20261002.json"
+        for x in entries:
+            k = (x.get("university"), x.get("supervisor"))
+            (light_keys if light else deep_keys).add(k)
+            queue.append(x)
     raw_reports = parse_reports()
     area_map = load_aux("area_bucket.json")
     dept_map = load_aux("dept_bucket.json")
@@ -359,7 +372,14 @@ def main():
     tmap = {(a["university"], a["supervisor"]): a for a in advisors}
     smap = {(a["university"], a["supervisor"]): a for a in scores}
     aimap = {(a["university"], a["supervisor"]): a for a in ai_subset}
-    qmap = {(x["university"], x["supervisor"]): x for x in queue}
+    qmap = {}
+    for x in queue:
+        k = (x["university"], x["supervisor"])
+        prev = qmap.get(k)
+        # done 状态优先保留；其余后写覆盖（同人多批次时取终态）
+        if prev and prev.get("research_status") == "done" and x.get("research_status") != "done":
+            continue
+        qmap[k] = x
     rmap = defaultdict(list)
     for r in roster:
         rmap[(r["university"], r["supervisor"])].append(r)
@@ -588,7 +608,9 @@ def main():
             "hardflag": sum(1 for r in all_recs if r["dropout"]["hard"]),
             "deep_done": sum(1 for r in all_recs if r["research_status"] == "done"),
             "reports": sum(1 for recs in school_adv.values() for r in recs if r["report"]), "synthesis": sum(1 for r in all_recs if r["synthesis"]),
-            "queue_total": len(queue), "queue_done": sum(1 for x in queue if x.get("research_status") == "done"),
+            "queue_total": len(qmap), "queue_done": sum(1 for x in qmap.values() if x.get("research_status") == "done"),
+            "deep_a": sum(1 for k, x in qmap.items() if k in deep_keys and x.get("research_status") == "done"),
+            "deep_b": sum(1 for k, x in qmap.items() if k in light_keys and x.get("research_status") == "done"),
             "ai_total": len(ai_subset), "intern_constrained": intern_constrained,
         },
         "composite_hist": hist,
@@ -603,12 +625,18 @@ def main():
     json.dump(deep_sanitize(stats), open(os.path.join(OUT, "stats.json"), "w", encoding="utf-8"),
               ensure_ascii=False, separators=(",", ":"))
 
-    # ---- 静态资源版本号自增（内容哈希，改代码必失效缓存）----
+    # ---- 缓存版本号（内容哈希）：app.js + style.css + stats.json 一并参与 ----
+    # app.js 内的 BUST 常量（loadJSON 给全部 API 请求加 ?v=）与 index.html 的资源 ?v=
+    # 同源更新：代码或数据任何一边变化，版本号都变，浏览器缓存自动失效。
     here = os.path.dirname(os.path.abspath(__file__))
+    appjs = open(os.path.join(here, "assets", "app.js"), encoding="utf-8").read()
     h = hashlib.md5()
-    for fn in ("assets/app.js", "assets/style.css"):
-        h.update(open(os.path.join(here, fn), "rb").read())
+    h.update(re.sub(r'const BUST = "[^"]*"', 'const BUST = ""', appjs).encode("utf-8"))
+    h.update(open(os.path.join(here, "assets", "style.css"), "rb").read())
+    h.update(open(os.path.join(OUT, "stats.json"), "rb").read())
     bust = h.hexdigest()[:8]
+    open(os.path.join(here, "assets", "app.js"), "w", encoding="utf-8", newline="\n").write(
+        re.sub(r'const BUST = "[^"]*"', f'const BUST = "{bust}"', appjs))
     ix = os.path.join(here, "index.html")
     html = open(ix, encoding="utf-8").read()
     html = re.sub(r"\?v=[0-9a-f]{1,10}", f"?v={bust}", html)

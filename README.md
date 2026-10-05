@@ -29,10 +29,12 @@
 
 | 方式 | 入口 | 适合 |
 |---|---|---|
-| ① 开网址（最简单） | <https://open-advisor-review-org.github.io/open-advisor-review/> | 有网就能看，数据最新，手机电脑均可 |
-| ② 离线单文件版（免安装·免联网） | [Releases → offline-latest](https://github.com/open-advisor-review-org/open-advisor-review/releases/tag/offline-latest) 下载 `advisor-review-offline.html`（约 23MB） | **双击**即用浏览器离线打开全部数据；微信/QQ/网盘直接传这一个文件给同学；数据是构建时的快照，页面顶部标注版本，想看最新回线上版 |
+| ① 开网址 | <https://open-advisor-review-org.github.io/open-advisor-review/> | 有网就能看，数据最新，手机电脑均可 |
+| ② 离线单文件版（**推荐**） | [Releases → offline-latest](https://github.com/open-advisor-review-org/open-advisor-review/releases/tag/offline-latest) 下载 `advisor-review-offline.html`（约 23MB） | **双击**即用浏览器离线打开全部数据；微信/QQ/网盘直接传这一个文件给同学；数据是构建时的快照，页面顶部标注版本，想看最新回线上版 |
 
 ![线上版二维码](docs/qr-online.png)
+
+> **为什么更推荐离线版**：线上版托管在 GitHub Pages（海外免备案托管），国内访问时快时慢，且平台对站点有**每月 100GB 的流量软上限**——访问高峰期可能变慢甚至暂时打不开，这多半不是站点坏了。离线版数据与线上版同源同版本，不联网、不受带宽限制，下载一次随时能用；数据更新后重新下载即可（下载入口链接固定不变）。
 
 ### 路径一（开发者 / 自托管）：克隆本地跑或镜像
 

@@ -1,0 +1,40 @@
+name: Build offline single-file HTML
+
+# 数据/前端更新时自动重建离线傻瓜包，挂到固定 Release（offline-latest），
+# 下载入口永远是同一个链接；与 pages.yml 同触发条件，线上版与离线包同步更新。
+on:
+  push:
+    branches: [main]
+    paths: ['site/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python site/build_offline.py
+      - name: Reset rolling release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release delete offline-latest --yes --cleanup-tag || true
+      - name: Publish offline package
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: offline-latest
+          name: 离线单文件版（免安装 · 双击即用）
+          make_latest: false
+          body: |
+            不用装 Python、不用联网、不用任何环境——下载 `advisor-review-offline.html`，
+            双击用浏览器打开即可离线浏览全部站点数据（约 23MB，建议电脑端打开）。
+
+            数据与线上版同源同版本，构建于本次推送；页面顶部横幅标注了版本与数据截至日期，
+            想看最新数据请访问线上版。
+          files: site/dist/advisor-review-offline.html

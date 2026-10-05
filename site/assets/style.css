@@ -494,3 +494,14 @@ a.card.quick .t { font-weight: 800; font-size: 16px; display: flex; align-items:
 a.card.quick .t .arr { margin-left: auto; color: var(--brand); }
 a.card.quick .d { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.7; }
 @media (max-width: 900px) { .quick-grid { grid-template-columns: 1fr !important; } }
+
+/* ---------- 离线单文件版横幅（仅 build_offline.py 产物渲染，线上版无此节点） ---------- */
+.offline-banner {
+  background: linear-gradient(90deg, #ecf3ff, #e6f8ff);
+  border-bottom: 1px solid #d7e4ff;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  text-align: center;
+  padding: 7px 14px;
+}
+.offline-banner a { color: var(--brand); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }

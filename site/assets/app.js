@@ -16,13 +16,41 @@ const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
 const BUST = "2b0621de";
+/* 离线单文件模式（build_offline.py 产物）：全部 API 数据以逐文件 gzip+base64 内嵌于
+   <script id="offline-data" type="application/json">（data-meta 存版本/生成日/线上地址），
+   loadJSON 命中时懒解压——只解压被访问的文件，首屏秒开、内存友好。
+   线上部署没有该节点，走原 fetch 路径，行为与之前完全一致。 */
+const EMBED_EL = document.getElementById("offline-data");
+const EMBED = EMBED_EL ? { files: JSON.parse(EMBED_EL.textContent), meta: JSON.parse(EMBED_EL.dataset.meta || "{}") } : null;
+if (EMBED_EL) EMBED_EL.remove();
+async function gunzipJSON(b64) {
+  if (typeof DecompressionStream === "undefined")
+    throw new Error("当前浏览器过旧，不支持离线包解压（需 2023 年后的 Chrome / Edge / Firefox / Safari）。请换新浏览器打开，或联网访问线上版。");
+  const bin = atob(b64), u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const text = await new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+  return JSON.parse(text);
+}
 async function loadJSON(url) {
   if (cache[url]) return cache[url];
+  if (EMBED) {
+    const key = url.startsWith("assets/api/") ? url.slice(11) : url;
+    if (!EMBED.files[key]) throw new Error("离线包缺少数据文件：" + key);
+    return (cache[url] = await gunzipJSON(EMBED.files[key]));
+  }
   const r = await fetch(url + (url.includes("?") ? "&" : "?") + "v=" + BUST);
   if (!r.ok) throw new Error(url + " " + r.status);
   return (cache[url] = r.json());
 }
 const API = "assets/api/";
+if (EMBED) {
+  const m = EMBED.meta;
+  const b = document.createElement("div");
+  b.className = "offline-banner";
+  b.innerHTML = "📦 离线快照版" + (m.version ? " v" + esc(m.version) : "") + (m.generated ? " · 数据截至 " + esc(m.generated) : "")
+    + ' — 想看最新数据，<a href="' + (m.url || "https://open-advisor-review-org.github.io/open-advisor-review/") + '" target="_blank" rel="noopener">打开线上版</a>（需联网）';
+  document.querySelector("nav.nav").before(b);
+}
 /* QS 2027 世界大学排名（2026-06 发布；数据源=选校网 QS 官方镜像前600名+英文维基交叉验证；gen_qs2027_map.py 生成） */
 const QS2027 = {"东南大学":335,"浙江大学":47,"中国科学院大学":360,"西安交通大学":296,"华中科技大学":307,"北京航空航天大学":349,"天津大学":235,"上海交通大学":36,"大连理工大学":463,"中国科学技术大学":134,"清华大学":14,"北京大学":13,"武汉大学":165,"四川大学":300,"电子科技大学":488,"哈尔滨工业大学":190,"北京理工大学":243,"中南大学":452,"重庆大学":465,"同济大学":146,"南开大学":329,"华南理工大学":342,"西北工业大学":425,"复旦大学":26,"吉林大学":488,"南京大学":90,"厦门大学":303,"湖南大学":477,"山东大学":309,"华东师范大学":394,"中山大学":258,"上海大学":443,"中国农业大学":477,"北京师范大学":237,"郑州大学":581,"北京科技大学":443,"香港科技大学":33,"暨南大学":483,"Nanyang Technological University":12,"深圳大学":416,"浙江工业大学":560,"中国人民大学":521,"香港中文大学":18,"澳门大学":267,"南方科技大学":317,"香港大学":11,"National University of Singapore":10,"香港理工大学":50,"University of Sydney":28,"University of Technology Sydney":87,"Massey University":215,"Technical University Munich":25,"University of Utah":533,"东京大学":39,"Singapore University of Technology and Design":266,"The University of Sheffield":82,"University of New South Wales":19,"Columbia University":43,"University of California, Los Angeles":49,"香港城市大学":52,"Duke University":70,"Royal Institute of Technology":82,"University of Florida":228,"University of Melbourne":22,"King's College London":37,"Kyung Hee University":309,"Purdue University":100,"Univerisity of British Columbia":45,"University of Groningen":157,"University of Wisconsin-Madison":131,"东北大学(日本)":102,"京都大学":64,"名古屋大学":156,"大阪大学":95,"Delft University of Technology":48,"Massachusetts Institute of Technology":1,"McGill University":30,"RWTH Aachen University":104,"The Ohio State University":201,"University of Hamburg":209,"University of Illinois Urbana-Champaign":74,"University of Nottingham":97,"University of Toronto":32,"University of Wollongong":195,"东京工业大学":97,"Lund University":71,"Standford University":2,"Texas A&M University":169,"The Australian National University":29,"The Johns Hopkins University":20,"The University of Queensland":40,"University of Otago":198,"University of Rochester":251,"University of Washington":92,"University of Waterloo":113,"Washington University in St Louis":162,"九州大学":171,"北海道大学":179,"澳门科技大学":398,"Brown University":66,"California Institute of Technology":7,"Imperial College of SciTechMed":2,"New York University":58,"Queen's University":179,"Radboud University Nijmegen":283,"Swinburne University of Technology":291,"The University of Edinburgh":35,"University College London":8,"University of Amsterdam":60,"University of Bristol":57,"University of California, Davis":137,"University of Cambridge":6,"University of Chicago":24,"University of Freiburg":245,"University of Maryland, College Park":252,"University of Michigan":51,"University of Minnesota, Twin Cities":255,"University of Ottawa":228,"University of Pennsylvania":15,"University of Surrey":246,"University of Twente":223,"Victoria University of Wellington":241,"Yale University":16,"广岛大学":481,"筑波大学":351,"岭南大学":581,"香港教育大学":406,"香港浸会大学":216};
 function qsBadge(name) { const q = QS2027[name]; return q ? `<span class="chip qs" data-tip="QS 2027 世界大学排名（2026-06 发布）">QS ${q}</span>` : ""; }

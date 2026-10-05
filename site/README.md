@@ -17,15 +17,21 @@
 
 ## 快速开始
 
+> **普通用户不用跑任何命令**：直接开[线上版](https://open-advisor-review-org.github.io/open-advisor-review/)，
+> 或到 [Releases → offline-latest](https://github.com/open-advisor-review-org/open-advisor-review/releases/tag/offline-latest)
+> 下载 `advisor-review-offline.html` 双击离线浏览（`python build_offline.py` 生成，约 23MB）。
+> 下面是开发者流程。
+
 ```bash
-# 本仓库已内置构建产物（assets/api/），直接起服务即可：
+# 1) 构建数据（需要 ../data/ 下的管线产物，见下）
+python build.py
+
+# 2) 本地预览
 python -m http.server 8799
 # 打开 http://127.0.0.1:8799
 ```
 
-只有当你拿到了上游数据管线产物（见下一节）想重建数据时，才需要跑 `python build.py`。
-
-GitHub Pages：本仓库根目录带 `.github/workflows/pages.yml`（部署本目录），到 Settings → Pages 把 Source 选成 **GitHub Actions** 即可。
+GitHub Pages：推送本目录（含 `assets/api/`）到仓库，Settings → Pages → 选分支即可。
 无 Node、无 npm、无打包步骤。
 
 ## 数据构建（build.py）

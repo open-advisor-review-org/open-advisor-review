@@ -116,3 +116,7 @@ const CONTACT = { github: "https://github.com/", email: "" };
 - **`stats.disciplines`**：站点级学科配置（当前视角 + 各 profile 状态），前端据此展示。
 
 扩展一个新学科的三步：① 在 `DISCIPLINES` 注册 profile（定锚点表与 fit 规则）→ ② 给对应学科导师归属学科（默认沿用 `ACTIVE_DISCIPLINE`）→ ③ 重跑 `python build.py`。
+
+## 侵权投诉与更正通道（Takedown & Correction）
+
+本站与离线分发包中的评价类内容，均为公开匿名评价存档与公开网络信息的研究性聚合（非营利研究与社会监督用途）。权利人认为任何内容构成侵权或事实有误的，请通过邮箱（nameless202610@163.com）或仓库 Issue 指明具体条目与理由——**收到指认后 3 个工作日内核实回复，属实内容即时删除或遮蔽**。完整流程见仓库主 README。

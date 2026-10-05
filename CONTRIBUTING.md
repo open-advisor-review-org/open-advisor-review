@@ -15,7 +15,7 @@
 ### 流程
 
 1. 安装 skill（见 [README](README.md) 路径二）
-2. 对 AI 说「给 XX 大学的 XXX 老师出评分卡」——它会走 `advisor-scorecard` 流程（官方确认 → 学术画像 → 知乎/小红书风评 → 实习退学专项 → 十项分 + 综合判读）
+2. 对 AI 说「给 XX 大学的 XXX 老师出评分卡」——它会走 `advisor-scorecard` 流程（官方确认 → 学术画像 → 某乎/小某书风评 → 实习退学专项 → 十项分 + 综合判读）
 3. 产出两样东西，提 PR、开 Issue 附上，或直接发到上面邮箱：
    - **调研报告**（markdown）：每条结论带来源 URL + 访问日期
    - **信号修正条目**（adjustment，JSON 一条）：`{ university, supervisor, delta_internship, delta_dropout, freshness, notes, synthesis }`——字段含义与既有格式向 [site/README.md](site/README.md) 评分口径节对齐

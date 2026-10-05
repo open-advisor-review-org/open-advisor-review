@@ -452,7 +452,7 @@ async function viewOverview(t) {
     <section class="hero">
       <span class="kicker"><span class="dot"></span>开源 · 面向 AI 学生 · 专挖最新风评 ｜ 数据版本 ${esc(stats.version)}</span>
       <h1>选导师之前，<br>先看<span class="grad">证据与信号</span>。</h1>
-      <p class="sub">给 <b>AI 方向学生</b>做的择导师工具：底下有 ${fmt(T.reviews)} 条匿名评价存档和 ${fmt(T.roster)} 条官方师资名录垫着，但我们花力气最多的，是<b>去知乎、小红书和官方页面挖最新的风评</b>。存档大多停在 2020 年，而导师的口碑是会变的——<b>新，是这里的第一优先级</b>；每一分都能查到出处。</p>
+      <p class="sub">给 <b>AI 方向学生</b>做的择导师工具：底下有 ${fmt(T.reviews)} 条匿名评价存档和 ${fmt(T.roster)} 条官方师资名录垫着，但我们花力气最多的，是<b>去某乎、小某书和官方页面挖最新的风评</b>。存档大多停在 2020 年，而导师的口碑是会变的——<b>新，是这里的第一优先级</b>；每一分都能查到出处。</p>
       <div class="hero-search" id="heroSearch">
         <svg class="s-ico" width="20" height="20"><use href="#i-search"/></svg>
         <input type="text" placeholder="输入导师姓名或学校，如「卢湖川」「哈尔滨工业大学」…" autocomplete="off" spellcheck="false">
@@ -468,7 +468,7 @@ async function viewOverview(t) {
     </section>
     <!-- KPI -->
     <section class="sec">
-      <div class="sec-h"><span class="bar"></span><span class="zh">数据大盘</span><span class="en">Overview</span><span class="desc">数字和图表出自同一份数据：评价存档、官方名录，加上从知乎/小红书/官方页挖来的最新风评</span></div>
+      <div class="sec-h"><span class="bar"></span><span class="zh">数据大盘</span><span class="en">Overview</span><span class="desc">数字和图表出自同一份数据：评价存档、官方名录，加上从某乎/小某书/官方页挖来的最新风评</span></div>
       <div class="kpis">
         <div class="kpi"><div class="lab">${ic("user")} 名录导师</div><div class="num" data-n="${T.roster}">0</div><div class="sub">官方师资页口径 · 已覆盖 ${fmt(T.roster_schools || 0)} 所</div><svg class="spark" aria-hidden="true" width="70" height="24" viewBox="0 0 70 24">${sparkBars([3, 5, 4, 7, 6, 9, 8])}</svg></div>
         <div class="kpi"><div class="lab">${ic("school")} 覆盖高校</div><div class="num" data-n="${T.schools}">0</div><div class="sub">含港澳与海外院校</div></div>
@@ -502,7 +502,7 @@ async function viewOverview(t) {
         <div class="card"><div class="card-h"><span class="zh">评价年份分布</span><span class="en">Review Timeline</span><span class="more" style="color:var(--faint);font-size:12px">存档大多停在 2020</span></div>
           <div class="card-b">${chartTimeline(stats.timeline)}
             ${stats.timeline_social && stats.timeline_social.length ? `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)">
-              <div style="font-size:12px;color:var(--muted);margin-bottom:2px">深挖补到的新证据（知乎 / 小红书 / 官方页，共 ${fmt(stats.timeline_social.reduce((s2, b) => s2 + b.n, 0))} 条）</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:2px">深挖补到的新证据（某乎 / 小某书 / 官方页，共 ${fmt(stats.timeline_social.reduce((s2, b) => s2 + b.n, 0))} 条）</div>
               ${chartTimeline(stats.timeline_social, { h: 104, cyan: true, tipWord: "条新证据" })}
             </div>` : ""}
           </div></div>
@@ -667,7 +667,7 @@ async function viewMethod(t) {
         <div class="card" style="border-color:#c3d8ff;background:linear-gradient(180deg,#eaf1ff, #ffffff 60%)">
           <div class="card-h"><span class="zh">${ic("radar")} 面向 AI 方向学生</span><span class="en">For AI Students</span></div>
           <div class="card-b" style="font-size:13.5px;line-height:1.8;color:var(--ink-2)">
-            项目的长期目标是<b>覆盖全学科</b>——打分框架里，口碑、实习、退学这些维度全学科通用，唯独「方向前途」的打分表按学科各配一套。现在启用的是 <b>AI 这套</b>，站在 AI 学生的立场打分。方向前景的基准表：LLM 相关 3.5、CV/NLP 经典 3、传统机器学习 2.5、传统优化 2；然后再看导师近 5 年的研究跟不跟得上主流方向，跟不上就往下减。目前覆盖计算机、智能科学、机器人这些 AI 相关院系。至于实习、退学这类硬信号，对哪个学科都是同一套标准。<br><b>深挖最看重的是「新」</b>：存档评价大多停在 2020 年，但导师的口碑会变——我们优先去挖近几年知乎、小红书、官方页面上的新说法；哪几年实在挖不到，就照实标出来；老评价记作 [旧评]，不替谁辩解。
+            项目的长期目标是<b>覆盖全学科</b>——打分框架里，口碑、实习、退学这些维度全学科通用，唯独「方向前途」的打分表按学科各配一套。现在启用的是 <b>AI 这套</b>，站在 AI 学生的立场打分。方向前景的基准表：LLM 相关 3.5、CV/NLP 经典 3、传统机器学习 2.5、传统优化 2；然后再看导师近 5 年的研究跟不跟得上主流方向，跟不上就往下减。目前覆盖计算机、智能科学、机器人这些 AI 相关院系。至于实习、退学这类硬信号，对哪个学科都是同一套标准。<br><b>深挖最看重的是「新」</b>：存档评价大多停在 2020 年，但导师的口碑会变——我们优先去挖近几年某乎、小某书、官方页面上的新说法；哪几年实在挖不到，就照实标出来；老评价记作 [旧评]，不替谁辩解。
           </div>
         </div>
         <div class="card">

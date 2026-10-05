@@ -15,7 +15,7 @@ const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "2c613ae5";
+const BUST = "2b0621de";
 async function loadJSON(url) {
   if (cache[url]) return cache[url];
   const r = await fetch(url + (url.includes("?") ? "&" : "?") + "v=" + BUST);

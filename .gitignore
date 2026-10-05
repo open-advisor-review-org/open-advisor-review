@@ -4,3 +4,4 @@ __pycache__/
 Thumbs.db
 node_modules/
 site-dist/
+site/dist/

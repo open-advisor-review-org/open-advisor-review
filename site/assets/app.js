@@ -15,7 +15,7 @@ const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "998c5260";
+const BUST = "86982361";
 /* 离线单文件模式（build_offline.py 产物）：全部 API 数据以逐文件 gzip+base64 内嵌于
    <script id="offline-data" type="application/json">（data-meta 存版本/生成日/线上地址），
    loadJSON 命中时懒解压——只解压被访问的文件，首屏秒开、内存友好。
@@ -1134,6 +1134,7 @@ async function viewAdvisor(sid, aid, t) {
 
         <div style="display:flex;flex-direction:column;gap:12px">
           ${a.synthesis ? `<div class="synthesis"><div class="cap">${ic("doc")} AI 综合评价</div>${esc(a.synthesis)}</div>` : ""}
+          ${a.human_note ? `<div class="synthesis" style="border-left-color:var(--ok)"><div class="cap">${ic("check")} 知情者证言</div>${esc(a.human_note.text)}<div style="margin-top:8px;font-size:11.5px;color:var(--muted)">自述身份：${esc(a.human_note.role)} · ${esc(a.human_note.submitted)} 提交 · 平台代录 · 未经验证 · 不计入评分</div></div>` : ""}
           ${dimCard("academics", "学术水平")}
           ${dimCard("funding", "科研经费")}
           ${dimCard("stipend", "学生补助")}

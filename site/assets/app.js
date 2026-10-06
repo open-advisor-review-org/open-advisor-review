@@ -15,7 +15,7 @@ const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "86982361";
+const BUST = "97d2c9e6";
 /* 离线单文件模式（build_offline.py 产物）：全部 API 数据以逐文件 gzip+base64 内嵌于
    <script id="offline-data" type="application/json">（data-meta 存版本/生成日/线上地址），
    loadJSON 命中时懒解压——只解压被访问的文件，首屏秒开、内存友好。
@@ -813,7 +813,7 @@ async function viewSchool(sid, t) {
       </div></td>
       <td style="max-width:150px"><span class="sub" style="display:block;font-size:12px;color:var(--muted)">${esc((a.departments || [])[0] || "—")}</span><span class="sub">${esc(title || "")}</span></td>
       <td style="max-width:190px;font-size:12px;color:var(--muted)"><span class="chip" style="font-size:11px;padding:1px 8px;margin-right:6px">${esc(a.dir_bucket || "未标注")}</span>${areas ? esc(areas.length > 20 ? areas.slice(0, 20) + "…" : areas) : ""}</td>
-      <td>${pill(a.composite)}${a.basis === "profile" ? `<span class="sub" style="display:block;font-size:10.5px;color:var(--muted)">AI 资料初评</span>` : a.penalty ? `<span class="sub" style="display:block;font-size:10.5px;color:var(--danger)">红线 ${f1(-a.penalty)}</span>` : ""}</td>
+      <td>${pill(a.composite)}${a.basis === "testimony" ? `<span class="sub" style="display:block;font-size:10.5px;color:var(--ok)">知情证言计入</span>` : a.basis === "profile" ? `<span class="sub" style="display:block;font-size:10.5px;color:var(--muted)">AI 资料初评</span>` : a.penalty ? `<span class="sub" style="display:block;font-size:10.5px;color:var(--danger)">红线 ${f1(-a.penalty)}</span>` : ""}</td>
       <td class="num">${a.base != null ? f1(a.base) : "—"}</td>
       <td class="num">${a.rate_avg != null ? f1(a.rate_avg) : "—"}</td>
       <td><div style="display:flex;gap:5px;flex-wrap:wrap">${signalFlags(a) || '<span class="sub">—</span>'}</div></td>
@@ -904,8 +904,11 @@ async function viewAdvisor(sid, aid, t) {
   /* ---- 评分卡主色 ---- */
   const C = a.composite;
   const isProfile = a.basis === "profile";
+  const isTestimony = a.basis === "testimony";
   const heroCls = C == null ? "na" : C < 0 ? "neg" : C < 2.5 ? "mid" : "pos";
-  const heroNote = isProfile
+  const heroNote = isTestimony
+    ? `${a.n_reviews} 条存档评价 · 含知情者证言（邮件投稿 · 未验证）计入评分 · 方向分 ${a.direction ? f1(a.direction.score) : "—"}`
+    : isProfile
     ? "AI 资料初评 · 零学生口碑：官方名录职称 + 研究方向两因子，置信度低于口碑综合分"
     : C == null
     ? (a.n_reviews > 0 ? "这些评价里没有能用来打分的内容，暂不出综合分" : "评价库里还没有这位的评价，先看官方名录和调研信息")
@@ -982,8 +985,10 @@ async function viewAdvisor(sid, aid, t) {
     const ap = key === "academics" && v == null && a.academics_profile ? a.academics_profile
       : key === "outcome" && v == null && a.outcome_profile ? a.outcome_profile : null;
     const ai = (a.dims_ai || {})[key] || null;
-    const aiLabel = key === "academics" ? "AI 论文实锚出分" : key === "outcome" ? "AI 论文实锚（学生前途）" : "AI 读评论出分";
-    const aiWhy = (key === "academics" || key === "outcome")
+    const aiLabel = isTestimony ? "知情证言采信" : key === "academics" ? "AI 论文实锚出分" : key === "outcome" ? "AI 论文实锚（学生前途）" : "AI 读评论出分";
+    const aiWhy = isTestimony
+      ? `知情者证言（邮件投稿 · 未验证）判读计入。依据：${esc(String(ai).slice(0, 90))}`
+      : (key === "academics" || key === "outcome")
       ? `词表无法归一，由 AI 按近 5 年论文实锚判分。依据：${esc(String(ai).slice(0, 90))}`
       : `叙述性评论词表无法归一，由 AI 判读打分。依据：「${esc(String(ai).slice(0, 90))}」`;
     const apLabel = key === "academics" ? "AI 论文/资历档（非口碑）" : "AI 论文实锚（近5年产出，非口碑）";
@@ -1087,7 +1092,7 @@ async function viewAdvisor(sid, aid, t) {
     <!-- 评分主卡 + 红线 -->
     <div class="score-hero">
       <div class="score-big ${heroCls}">
-        <span class="cap">综合分 COMPOSITE${isProfile ? "（AI 资料初评）" : a.penalty ? "（含红线惩罚）" : ""}</span>
+        <span class="cap">综合分 COMPOSITE${isTestimony ? "（含知情证言）" : isProfile ? "（AI 资料初评）" : a.penalty ? "（含红线惩罚）" : ""}</span>
         <span class="v">${C == null ? "—" : f1(C)}<small> / 5</small></span>
         <span class="note">${esc(heroNote)}</span>
       </div>
@@ -1134,7 +1139,7 @@ async function viewAdvisor(sid, aid, t) {
 
         <div style="display:flex;flex-direction:column;gap:12px">
           ${a.synthesis ? `<div class="synthesis"><div class="cap">${ic("doc")} AI 综合评价</div>${esc(a.synthesis)}</div>` : ""}
-          ${a.human_note ? `<div class="synthesis" style="border-left-color:var(--ok)"><div class="cap">${ic("check")} 知情者证言</div>${esc(a.human_note.text)}<div style="margin-top:8px;font-size:11.5px;color:var(--muted)">自述身份：${esc(a.human_note.role)} · ${esc(a.human_note.submitted)} 提交 · 平台代录 · 未经验证 · 不计入评分</div></div>` : ""}
+          ${a.human_note ? `<div class="synthesis" style="border-left-color:var(--ok)"><div class="cap">${ic("check")} 知情者证言${a.human_note.weight === "accepted" ? "（已采信 · 计入评分）" : "（待验证 · 不计入评分）"}</div>${esc(a.human_note.text)}<div style="margin-top:8px;font-size:11.5px;color:var(--muted)">自述身份：${esc(a.human_note.role)} · ${esc(a.human_note.submitted)} 提交 · 平台代录 · 邮件/消息投稿默认采信（未验证，可回访核实） · 负面证言同样采信</div></div>` : ""}
           ${dimCard("academics", "学术水平")}
           ${dimCard("funding", "科研经费")}
           ${dimCard("stipend", "学生补助")}

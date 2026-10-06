@@ -15,7 +15,7 @@ const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "97d2c9e6";
+const BUST = "22150954";
 /* 离线单文件模式（build_offline.py 产物）：全部 API 数据以逐文件 gzip+base64 内嵌于
    <script id="offline-data" type="application/json">（data-meta 存版本/生成日/线上地址），
    loadJSON 命中时懒解压——只解压被访问的文件，首屏秒开、内存友好。
@@ -1162,10 +1162,10 @@ async function viewAdvisor(sid, aid, t) {
           <div class="dim-card wide">
             <div class="hd"><span class="nm">方向前途（按 AI 学科视角评分）</span>${pill(a.direction.score, 1)}
               <span class="chip ai">AI 判断 · 非客观测量</span><span class="chip">按 AI 学科视角打分</span>
-              <span class="chip${a.direction.basis === "pilot" ? " tierA" : " tierC"}">${a.direction.basis === "pilot" ? "深挖调研定档" : "规则锚点初评"}</span>
+              <span class="chip${a.direction.basis === "pilot" || a.direction.basis === "papers" ? " tierA" : " tierC"}">${a.direction.basis === "pilot" ? "深挖调研定档" : a.direction.basis === "papers" ? "AI 读论文定档" + (a.direction.conf === "low" ? "（身份低置信）" : "") : a.direction.basis === "research" ? "调研实锚复核" : "规则锚点初评"}</span>
             </div>
             <div class="why">${esc(a.direction.rationale)}</div>
-            <div style="font-size:11.5px;color:var(--faint);margin-top:6px">方向基准分：LLM 相关 3.5、CV/NLP 3、传统机器学习 2.5、传统优化 2；再看导师近 5 年的研究贴不贴主赛道，不贴只减不加。方向分和口碑分互相独立，分开看。<div style="font-size:11.5px;color:var(--faint);margin-top:4px">这张打分表是按学科配置的——项目目标是覆盖全学科，每个学科会各有各的表；现在启用的是 AI 这套。</div></div>
+            <div style="font-size:11.5px;color:var(--faint);margin-top:6px">方向基准分（rubric v2.2）：当前最热主赛道（大模型/生成式AI/多模态/智能体/具身智能/世界模型等）基准 4.0、贴紧主赛道 4.5、顶线产出头部可到 5；CV/NLP 经典任务 3、传统机器学习 2.5、传统优化 2。判分以导师近 5 年论文为据：贴不贴领域当前主赛道只调 ±0.5-1。方向分和口碑分互相独立，分开看。<div style="font-size:11.5px;color:var(--faint);margin-top:4px">这张打分表是按学科配置的——项目目标是覆盖全学科，每个学科会各有各的表；现在启用的是 AI 这套。</div></div>
           </div>` : ""}
           ${a.freshness ? `<div class="fresh-box"><b>⏱ 新鲜度声明：</b>${esc(a.freshness)}</div>` : ""}
           ${a.notes ? `<div class="fresh-box"><b>🔎 调研注记：</b>${esc(a.notes)}</div>` : ""}

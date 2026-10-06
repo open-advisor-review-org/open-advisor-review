@@ -116,7 +116,7 @@ DISCIPLINES = {
     "ai": {
         "name": "人工智能",
         "status": "active",
-        "rubric": "LLM 相关 3.5 / CV·NLP 经典 3 / 传统 ML ≤2.5 / 传统优化 ≤2；另看导师近 5 年研究贴不贴主赛道，不贴只减不加",
+        "rubric": "v2.2：当前最热主赛道（LLM/生成式AI/多模态大模型/Agent/具身智能VLA/世界模型/AI4Science）基准 4.0，fit 高 4.5、顶线产出头部 5.0（罕见）；CV·NLP 经典 3 / 传统 ML ≤2.5 / 传统优化 ≤2；fit=近 5 年文章与领域主赛道贴合度，高不调/中-0.5/低-1.0",
         "note": "当前默认视角：给 AI 学生的择导师参考",
     },
     # ---- 以下预留位：定标后启用 ----
@@ -137,11 +137,13 @@ def rubric_anchors(discipline):
 AI_PAT = (r"人工智能|智能科学|智能系统|智能信息|机器学习|深度学习|计算机视觉|模式识别|自然语言处理|语言模型|大模型|知识图谱|"
           r"数据挖掘|强化学习|计算机智能|计算智能|机器人|具身|智能体|语音|多媒体|计算机应用|虚拟现实|计算机技术|计算机科学|"
           r"软件工程|网络安全|信息安全|密码学|图形学|数据库|大数据|物联网|边缘计算|网络空间")
+# rubric v2.2（2026-10-06 用户定调：当前最热门方向可给到 4 以上）——关键词锚点兜底层；
+# 判分金标准=AI 读近 5 年论文（basis=papers，dk_agents/direction_scan.py 管线），锚点层只在无论文证据时兜底
 ANCHORS = [
     (r"优化|进化计算|遗传算法|演化|群智能|蚁群|粒子群|[Ee]volutionary|[Gg]enetic [Aa]lgorithm|[Oo]ptimi[sz]ation", 2.0, "传统优化上限 2"),
-    (r"大模型|LLM|ChatGPT|语言模型|知识图谱|知识增强|对话|AIGC|Large Language|LLM Agent", 3.5, "有 LLM 相关=3.5"),
+    (r"大模型|LLM|ChatGPT|语言模型|多模态|生成式|AIGC|扩散模型|[Dd]iffusion|智能体|Agent|世界模型|具身智能|VLA|Embodied|Generative|Multimodal|Large Language|知识图谱|知识增强|对话", 4.0, "当前最热主赛道基准 4.0（rubric v2.2；fit 未判定，AI 读论文复核）"),
     (r"目标跟踪|跟踪|检测|识别|分割|图像处理|计算机视觉|视觉|自然语言处理|文本|检索|OCR|[Cc]omputer [Vv]ision|[Ii]mage|[Nn]atural [Ll]anguage|[Ss]entiment|[Ss]peech", 3.0, "CV/NLP 经典任务=3"),
-    (r"机器人|具身|事件相机|神经形态|传感器|芯片|智能体|无人|[Rr]obot|[Ee]mbodied|[Ss]ensor", 3.5, "其他前沿（批量保守档）"),
+    (r"机器人|事件相机|神经形态|传感器|芯片|无人|[Rr]obot|[Ss]ensor", 3.5, "其他前沿硬科技（批量保守档）"),
     (r"机器学习|模式识别|故障诊断|数据挖掘|预测|深度学习|[Mm]achine [Ll]earning|[Dd]ata [Mm]ining|[Dd]eep [Ll]earning|[Pp]attern [Rr]ecognition|[Rr]einforcement [Ll]earning", 2.5, "传统 ML 上限 2.5"),
 ]
 
@@ -227,8 +229,8 @@ def rule_direction(text, anchors=None):
     t = text or ""
     for pat, score, why in (anchors or ANCHORS):
         if re.search(pat, t):
-            return score, "批量规则锚点初评：命中[%s]；fit 未判定待复核（rubric v2.1）" % why
-    return 3.0, "批量规则锚点初评：无锚点命中取稳态默认；fit 未判定待复核（rubric v2.1）"
+            return score, "批量规则锚点初评：命中[%s]；fit 未判定待复核（rubric v2.2）" % why
+    return 3.0, "批量规则锚点初评：无锚点命中取稳态默认；fit 未判定待复核（rubric v2.2）"
 
 
 def composite(x, direction, intern_override=None, drop_override=None, delay_level=None):
@@ -368,6 +370,11 @@ def main():
     dept_map = load_aux("dept_bucket.json")
     # 英文名导师中文名对照（海外/港澳导师可被中文搜索到，用户 2026-10-07 要求）
     alias_map = {k: v for k, v in load_aux("name_alias.json").items() if not k.startswith("_")}
+    # 知情者证言（human_note 通道）：利益相关者第一手描述，分栏展示、不计分
+    hnmap = {}
+    if os.path.exists(os.path.join(D, "human_notes.json")):
+        for e in json.load(open(os.path.join(D, "human_notes.json"), encoding="utf-8")).get("entries", []):
+            hnmap[(e["university"], e["supervisor"])] = e
     report_by_key = lambda uni, sup: match_report(raw_reports, uni, sup)
 
     # AI 资料初评层（advisor-scorecard-batch SKILL 第八节）：零口碑/无法出口碑分的导师
@@ -426,7 +433,9 @@ def main():
             direction = {"score": dirp["direction_outlook"], "rationale": dirp["rationale"], "basis": "pilot", "discipline": ACTIVE_DISCIPLINE}
         elif pb and pb.get("overlay_applied") and pb.get("direction_profile"):
             direction = {"score": pb["direction_profile"]["score"], "rationale": pb["direction_profile"]["rationale"],
-                         "basis": "research", "discipline": ACTIVE_DISCIPLINE}
+                         "basis": pb["direction_profile"].get("basis") or "research",
+                         "conf": pb["direction_profile"].get("confidence"),
+                         "discipline": ACTIVE_DISCIPLINE}
         elif ai or q:
             sc, why = rule_direction(areas_txt, rubric_anchors(ACTIVE_DISCIPLINE))
             direction = {"score": sc, "rationale": why, "basis": "anchor", "discipline": ACTIVE_DISCIPLINE}
@@ -471,6 +480,30 @@ def main():
                                                           intern_override, drop_override, dl)
             if comp is not None:
                 basis = "review"
+        # 知情者证言计分（2026-10-06 政策：邮件/消息投稿默认采信，与存档评价同权，标注未验证；
+        # 零口碑导师由此进入口碑综合分路径；负面证言同规则对称采信）
+        hn = hnmap.get((uni, sup))
+        if comp is None and hn and hn.get("weight") == "accepted" and hn.get("dims"):
+            hd = {k: (v["score"] if isinstance(v, dict) else v) for k, v in hn["dims"].items()}
+            sevd = {k: v for k, v in hd.items() if v is not None}
+            if s is None:
+                s = {"university": uni, "supervisor": sup, "n_reviews": 0, "rate_avg": None,
+                     "dims": sevd, "dims_n": {},
+                     "internship": (hn.get("internship") or {}).get("score") if isinstance(hn.get("internship"), dict) else hn.get("internship"),
+                     "intern_pos_evidence": 1 if (hn.get("internship") or {}).get("score", 0) and hn["internship"]["score"] > 2 else 0,
+                     "intern_neg_evidence": 1 if isinstance(hn.get("internship"), dict) and hn["internship"].get("score", 5) <= 2 else 0,
+                     "dropout_mentions": (hn.get("dropout_ai") or {}).get("mentions", 0) if isinstance(hn.get("dropout_ai"), dict) else 0,
+                     "dropout_hard_flag": False, "delay_grad_mentions": 0, "dropout_keywords": {}}
+            intern_t = (hn.get("internship") or {}).get("score") if isinstance(hn.get("internship"), dict) else None
+            comp, base, pen, penalties, parts = composite(s, direction["score"] if direction else None, intern_t, None, None)
+            if comp is not None:
+                basis = "testimony"
+                for k, v in hn["dims"].items():
+                    if isinstance(v, dict) and v.get("evidence"):
+                        dims_ai_meta[k] = "知情证言（邮件投稿·未验证）：「%s」" % v["evidence"]
+                if isinstance(hn.get("internship"), dict) and hn["internship"].get("evidence"):
+                    dims_ai_meta["internship"] = "知情证言（邮件投稿·未验证）：「%s」" % hn["internship"]["evidence"]
+
         # AI 资料初评兜底（SKILL 8.3）：零口碑/口碑证据不足以出分时，资料版综合分补位——
         # (学术资历档×0.55 + 方向×0.15)/0.70 归一，无红线扣分；与口碑分强制可区分
         if comp is None and pb and pb.get("composite_profile") is not None:
@@ -486,7 +519,9 @@ def main():
         # 方向分兜底：口碑维缺失但资料层有方向判读时补上（零口碑卡的方向 chip）
         if direction is None and pb and pb.get("direction_profile"):
             direction = {"score": pb["direction_profile"]["score"], "rationale": pb["direction_profile"]["rationale"],
-                         "basis": "anchor", "discipline": ACTIVE_DISCIPLINE}
+                         "basis": pb["direction_profile"].get("basis") or "anchor",
+                         "conf": pb["direction_profile"].get("confidence"),
+                         "discipline": ACTIVE_DISCIPLINE}
 
         rvs = revmap.get((uni, sup), [])
         synth = adj.get("synthesis") or (pb.get("synthesis_profile") if pb else None)
@@ -531,7 +566,7 @@ def main():
                         "delay": s["delay_grad_mentions"] if s else 0},
             "direction": direction,
             "composite": comp, "base": base,
-            "penalty": (pen if (comp is not None and basis == "review") else None),
+            "penalty": (pen if (comp is not None and basis in ("review", "testimony")) else None),
             "penalties": penalties, "parts": parts,
             "basis": basis,
             # 显示层补位（不进口碑计算）：学术资历档/学生前途论文实锚——仅当该维无口碑分时给
@@ -550,6 +585,7 @@ def main():
             "reviews": rev_payload,
         }
         rec["alias"] = alias_map.get(f"{uni}|{sup}")
+        rec["human_note"] = hnmap.get((uni, sup))
         school_adv[uni].append(rec)
 
         # ---- 红线脱敏（用户 2026-10-04 要求：触发红线惩罚的导师全站匿名=姓氏+拼音缩写）----
@@ -575,7 +611,7 @@ def main():
 
     # ---- 排序：口碑综合分 > 资料初评分 > 无分；档内综合分降序 → 评数 → 姓名 ----
     def sort_key(r):
-        b = 0 if r["basis"] == "review" else (1 if r["basis"] == "profile" else 2)
+        b = 0 if r["basis"] in ("review", "testimony") else (1 if r["basis"] == "profile" else 2)
         return (b, -(r["composite"] if r["composite"] is not None else -99), -r["n_reviews"], r["supervisor"])
     for uni in school_adv:
         school_adv[uni].sort(key=sort_key)
@@ -586,7 +622,7 @@ def main():
         sid = sid_of(uni)
         cate = cate_cnt[uni].most_common(1)[0][0] if cate_cnt[uni] else None
         # 榜单口径只收口碑综合分（SKILL 8.3）；资料初评分单列计数
-        comps = [r["composite"] for r in recs if r["basis"] == "review"]
+        comps = [r["composite"] for r in recs if r["basis"] in ("review", "testimony")]
         n_profile = sum(1 for r in recs if r["basis"] == "profile")
         n_done = sum(1 for r in recs if r["research_status"] == "done")
         n_hard = sum(1 for r in recs if r["dropout"]["hard"])
@@ -597,7 +633,7 @@ def main():
             d = bstat.setdefault(b, {"n": 0, "scored": 0, "reviews": 0, "csum": 0.0, "neg": 0, "deep": 0})
             d["n"] += 1
             d["reviews"] += r["n_reviews"]
-            if r["basis"] == "review":
+            if r["basis"] in ("review", "testimony"):
                 d["scored"] += 1
                 d["csum"] += r["composite"]
                 if r["composite"] < 0:
@@ -650,7 +686,7 @@ def main():
 
     # ---- stats.json 总览大盘 ----
     all_recs = [r for recs in school_adv.values() for r in recs]
-    comps = [r["composite"] for r in all_recs if r["basis"] == "review"]
+    comps = [r["composite"] for r in all_recs if r["basis"] in ("review", "testimony")]
     n_profile_total = sum(1 for r in all_recs if r["basis"] == "profile")
     bins = {}
     for c in comps:
@@ -669,7 +705,7 @@ def main():
         vals = [r["dims"][d_] for r in all_recs if r["dims"].get(d_) is not None]
         dims_avg[d_] = round(sum(vals) / len(vals), 2) if vals else None
     src_cnt = Counter(rv.get("source") for rv in reviews)
-    ranked = sorted(all_recs, key=lambda r: (r["basis"] != "review", -(r["composite"] or 0), -r["n_reviews"]))
+    ranked = sorted(all_recs, key=lambda r: (r["basis"] not in ("review", "testimony"), -(r["composite"] or 0), -r["n_reviews"]))
     intern_constrained = sum(1 for r in all_recs if r["internship"]["score"] is not None and r["internship"]["score"] <= 2)
     intern_constrained = sum(1 for r in all_recs if r["internship"]["score"] is not None and r["internship"]["score"] <= 2)
     stats = {

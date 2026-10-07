@@ -10,7 +10,7 @@
 | 1-6 | academics 学术水平 / funding 经费 / stipend 补助 / relationship 师生关系 / workload 工作时间 / outcome 学生前途 | 评价 dims 模板词表归一（`score_advisors.py` DIM 映射）；"不清楚"类跳过 | 1-5 |
 | 7 | rate 参考分 | 评价 rate 字段均值（71% 覆盖） | 1-5，独立呈现不进七维 |
 | 8 | **internship 实习放行** | outcome/relationship 维实习词 + description_raw 正则（允许/不允许实习等）；**名义放行但横向项目多实际走不开 → 下调 1 档**（用户 2026-10-02 补充） | 正例≥2 且>2×负例=5；正>负=4；负≥2 且>2×正=1；负>正=2；混合=3；无证据=None |
-| 10 | **direction_outlook 方向前途**（用户 2026-10-02 追加+定调） | **AI 评分**：锚点表 v2.1（AI 学生视角）——传统优化≤2 / 传统 ML≤2.5 / CV·NLP 经典任务=3 / LLM 相关=3.5 / 其他按四因子；四因子=学术热度/产业需求/斜率/5年可持续，另加 **fit 因子（导师近 5 年文章与领域主赛道贴合度：高不调/中 -0.5/低 -1.0）**；详见 `pilot_direction_scores.json` `_rubric` | 1-5，标注"AI 判断非客观测量" |
+| 10 | **direction_outlook 方向前途**（用户 2026-10-02 追加；v2.2 2026-10-06 定调） | **AI 评分金标准=读导师近 5 年论文后定档**（`dk_agents/direction_scan.py`：OpenAlex 实锚身份→近 5 年题名→AI 总结主桶→按 rubric v2.2 判分，basis="papers"）；锚点表 v2.2（AI 学生视角，无论文证据时兜底）——**当前最热主赛道（LLM/生成式AI/多模态/Agent/具身智能 VLA/世界模型/AI4Science）基准 4.0，fit 高 4.5、顶线产出头部 5.0（罕见）**；传统优化≤2 / 传统 ML≤2.5 / CV·NLP 经典任务=3 / 其他硬科技 3.0-3.5；fit 因子（高不调/中 -0.5/低 -1.0）不变；详见 `pilot_direction_scores.json` `_rubric_note` | 1-5，标注"AI 判断非客观测量" |
 | 9 | **dropout_risk 退学风险** | description_raw 正则（退学/劝退/延毕/延期毕业/转导师/换导师/转组/休学/跑路/毕不了业） | 有"退学/劝退"提及即硬 flag；分数：无提及=None（不参与）；仅延毕类 1-2 次=3；退学/劝退提及 1-2 次=2；≥3 次或多条独立来源=1 |
 
 - **退学 flag 呈现纪律**：显示"评价提及 N 次（关键词分布）+ 是否多源独立"，标注"未经证实的网络评价"；不得写个案姓名。

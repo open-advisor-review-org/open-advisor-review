@@ -522,6 +522,9 @@ def main():
                          "basis": pb["direction_profile"].get("basis") or "anchor",
                          "conf": pb["direction_profile"].get("confidence"),
                          "discipline": ACTIVE_DISCIPLINE}
+        # AI 读论文保守放弃留痕（用户 2026-10-06 定调）：锚点卡上标注 AI 未定档及原因
+        if direction is not None and direction.get("basis") == "anchor" and pb and pb.get("direction_abstain"):
+            direction["abstain"] = (pb["direction_abstain"].get("reason") or "AI 读论文未能定档")[:260]
 
         rvs = revmap.get((uni, sup), [])
         synth = adj.get("synthesis") or (pb.get("synthesis_profile") if pb else None)

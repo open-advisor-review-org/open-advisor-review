@@ -565,6 +565,8 @@ def main():
                            "neg": s["intern_neg_evidence"] if s else 0},
             "dropout": {"mentions": s["dropout_mentions"] if s else 0,
                         "hard": (drop_override or {}).get("hard_flag", s["dropout_hard_flag"] if s else False),
+                        "score": (drop_override or {}).get("score") if drop_override else None,
+                        "reason": (drop_override or {}).get("reason"),
                         "keywords": s["dropout_keywords"] if s else {},
                         "delay": s["delay_grad_mentions"] if s else 0},
             "direction": direction,

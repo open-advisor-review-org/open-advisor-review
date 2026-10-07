@@ -15,7 +15,7 @@ const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "36cffb3e";
+const BUST = "57e2a043";
 /* 离线单文件模式（build_offline.py 产物）：全部 API 数据以逐文件 gzip+base64 内嵌于
    <script id="offline-data" type="application/json">（data-meta 存版本/生成日/线上地址），
    loadJSON 命中时懒解压——只解压被访问的文件，首屏秒开、内存友好。
@@ -938,7 +938,7 @@ async function viewAdvisor(sid, aid, t) {
   const radarItems = [
     ...DIMS.map(([k, cn]) => ({ label: cn, v: a.dims[k] })),
     { label: "实习放行", v: a.internship.score },
-    { label: "退学安全", v: (() => { if (a.dropout.hard) return a.dropout.mentions >= 3 ? 1 : 2; if (a.dropout.mentions || a.dropout.delay) return 3; return null; })() },
+    { label: "退学安全", v: (a.dropout.score != null ? a.dropout.score : (() => { if (a.dropout.hard) return a.dropout.mentions >= 3 ? 1 : 2; if (a.dropout.mentions || a.dropout.delay) return 3; return null; })()) },
     ...(a.direction ? [{ label: "方向前途(按AI)", v: a.direction.score }] : []),
   ];
 
@@ -1152,8 +1152,9 @@ async function viewAdvisor(sid, aid, t) {
             <div class="quotes">${internEvidence.map((h) => quote(h.t, h.d)).join("")}</div>
           </div>
           <div class="dim-card${a.dropout.hard ? " danger" : ""}">
-            <div class="hd"><span class="nm">退学风险（分高=安全）</span>${pill((() => { if (a.dropout.hard) return a.dropout.mentions >= 3 ? 1 : 2; if (a.dropout.mentions || a.dropout.delay) return 3; return null; })(), 1)}<span class="n">提及 ${a.dropout.mentions} 次 · 延毕类 ${a.dropout.delay} 次</span></div>
-            <div class="why">${a.dropout.hard ? "有多条评价提到退学、劝退或转导师，触发硬信号扣 6 分（和延毕不叠加）" : (a.dropout.mentions || a.dropout.delay) ? "只有延毕或个别提及：按硕/博层次扣 2.5 / 1.5 分" : "没有评价提到退学、延毕、转导师这些"}</div>
+            <div class="hd"><span class="nm">退学风险（分高=安全）</span>${pill(a.dropout.score != null ? a.dropout.score : (a.dropout.hard ? (a.dropout.mentions >= 3 ? 1 : 2) : ((a.dropout.mentions || a.dropout.delay) ? 3 : null)), 1)}<span class="n">提及 ${a.dropout.mentions} 次 · 延毕类 ${a.dropout.delay} 次</span></div>
+            ${a.dropout.reason ? `<div class="why" style="color:var(--muted)">🔎 AI 口径审计（逐条判决命中评论）：${esc(String(a.dropout.reason))}</div>` : ""}
+            <div class="why">${a.dropout.reason ? "以上为审计后口径；原始提及计数保留在下方供对照" : a.dropout.hard ? "有多条评价提到退学、劝退或转导师，触发硬信号扣 6 分（和延毕不叠加）" : (a.dropout.mentions || a.dropout.delay) ? "只有延毕或个别提及：按硕/博层次扣 2.5 / 1.5 分" : "没有评价提到退学、延毕、转导师这些"}</div>
             ${kwRows ? `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${kwRows}</div>` : ""}
             <div class="quotes">${dropEvidence.map((h) => quote(h.t, h.d)).join("")}</div>
             <div style="font-size:11.5px;color:var(--faint);margin-top:6px">这些只是匿名网络评价的统计，成因复杂、未经证实，仅供参考。</div>

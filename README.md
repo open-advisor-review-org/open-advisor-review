@@ -157,7 +157,7 @@ open-advisor-review/
 ├── CONTRIBUTING.md              # 共建指南（补导师卡 / 新学科 / 站点代码）
 ├── docs/
 │   ├── dimensions.md            # 评价维度体系（七维继承 + 硬信号扩展）
-│   ├── scorecard-design.md      # 评分卡设计与 rubric v2.1
+│   ├── scorecard-design.md      # 评分卡设计与 rubric（v2.2：AI 读论文定档金标准）
 │   ├── refresh-design.md        # 数据持续更新机制（新评价/新导师/跳槽合并）
 │   └── ai-summary-interface.md  # AI 综合评价接口设计
 ├── skills/                      # 轨道 B：7 个 Agent Skill（装进你的 AI 即用）
@@ -175,7 +175,7 @@ open-advisor-review/
 学科推进节奏：**AI 优先 → CS 整体 → 全学科**。
 
 - [x] 前人项目调研与镜像备份（本地）
-- [x] 维度体系与评分口径 v2.1
+- [x] 维度体系与评分口径（v2.2：热门主赛道基准 4.0 / AI 读论文定档）
 - [x] 60 所官方名录采集（AI/CS 重点校）+ 39,739 条历史评价归一合并（469 校）
 - [x] 站点 v0.7：三层界面 / 学科榜单 / 方向筛选 / 红线脱敏 / 联系方式页
 - [x] AI 方向首轮深挖 1,076 人收官（含某乎/小某书现势证据）

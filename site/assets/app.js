@@ -15,7 +15,7 @@ const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "edd25d03";
+const BUST = "b319f782";
 /* 离线单文件模式（build_offline.py 产物）：全部 API 数据以逐文件 gzip+base64 内嵌于
    <script id="offline-data" type="application/json">（data-meta 存版本/生成日/线上地址），
    loadJSON 命中时懒解压——只解压被访问的文件，首屏秒开、内存友好。

@@ -15,7 +15,7 @@ const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "b319f782";
+const BUST = "d01880d7";
 /* 离线单文件模式（build_offline.py 产物）：全部 API 数据以逐文件 gzip+base64 内嵌于
    <script id="offline-data" type="application/json">（data-meta 存版本/生成日/线上地址），
    loadJSON 命中时懒解压——只解压被访问的文件，首屏秒开、内存友好。
@@ -1076,7 +1076,7 @@ async function viewAdvisor(sid, aid, t) {
       <div class="adv-ava">${esc(a.supervisor.trim()[0] || "?")}</div>
       <div style="flex:1">
         <h1>${esc(a.supervisor)}${a.alias ? ` <span style="font-size:16px;font-weight:500;color:var(--muted)">（${esc(a.alias)}）</span>` : ""} ${researchChip(a)} ${aiChip(a)}</h1>
-        <div class="affil"><b>${esc(a.university)}</b>${(a.departments || []).length ? " · " + esc(a.departments.slice(0, 2).join(" / ")) : ""}${a.roster && a.roster.title ? " · " + esc(a.roster.title) : ""}</div>
+        <div class="affil"><b>${esc(a.university)}</b>${(a.departments || []).length ? " · " + esc(a.departments.slice(0, 2).join(" / ")) : ""}${a.roster && a.roster.title ? " · " + esc(a.roster.title) : ""}${a.joint ? ` · <span style="color:var(--sub)">🏫 ${esc(a.joint)}</span>` : ""}</div>
         <div class="adv-tags">
           ${a.dir_bucket ? `<span class="chip ai">${ic("radar", 12)} ${esc(a.dir_bucket)}</span>` : ""}
           ${a.roster && (a.roster.areas || []).length ? a.roster.areas.slice(0, 6).map((x) => `<span class="chip">${esc(x.length > 18 ? x.slice(0, 18) + "…" : x)}</span>`).join("") : ""}

@@ -168,6 +168,35 @@ DEPT_RULES = [
 ]
 
 
+# ---- 论文实锚分桶（用户 2026-10-22 定调：站点聚焦真 AI 老师）----
+# direction_scan（dk_agents/direction_scan.py，AI 读近 5 年论文定 primary_field）优先于关键词规则：
+# 论文证据同时决定分桶与 AI 归属（近 5 年转方向的以论文为准）；标签模糊未命中者回落原规则层。
+# ai_ev 三档：papers=论文实锚 AI / rule=无论文判读、官方名录自报方向归 AI 桶 / no=论文判读非 AI。
+PAPERS_RULES = [
+    ("LLM/大模型", True, r"生成式AI|生成式|多模态|大模型|大语言模型|LLM|Agent|智能体|AIGC|世界模型|扩散模型|对话系统|文本生成"),
+    ("AI4科学/交叉", True, r"AI4S|生物信息|计算生物|计算化学|计算材料|科学计算|科学机器学习|医学AI|医疗AI|健康医疗"),
+    ("CV/NLP经典", True, r"(?<![A-Za-z])CV(?![A-Za-z])|视觉|图像|影像|遥感|NLP|自然语言|语音|OCR|点云|三维|3D|检测|分割|跟踪|人脸|文档|图文|视频"),
+    ("机器人/具身", True, r"具身|机器人|VLA|自动驾驶|无人|智能车|仿生|神经形态"),
+    ("传统ML/挖掘", True, r"机器学习|(?<![A-Za-z])ML(?![A-Za-z])|深度学习|数据挖掘|模式识别|强化学习|推荐|联邦学习|图机器|图神经|知识图谱|神经网络|类脑|进化计算|演化计算|群智能|群体智能|城市计算|时空数据|智能交通|工业AI|应用型AI|AI交叉应用|故障诊断"),
+    ("网络安全/系统", True, r"AI安全|对抗样本|模型安全|后门|可解释|隐私计算"),
+    ("其他CS方向", True, r"AI芯片|存算一体|智能芯片"),
+    ("网络安全/系统", False, r"网络安全|信息安全|系统安全|网络空间|密码|区块链|云计算|分布式|操作系统|数据库|软件工程|物联网|边缘计算|边缘智能|体系结构|可信计算|存储|安全"),
+    ("电子信息/通信", False, r"通信|信号处理|射频|电路|电力电子|电力系统|芯片|硬件|传感|雷达|光电|天线|微波|电磁|集成电路|6G|5G|电气工程|电气"),
+    ("自动化/控制", False, r"控制|优化|运筹|调度|导航|仪器|机械|制造|过程工程|系统工程"),
+    ("其他CS方向", False, r"理论计算机|形式化|并行|高性能|算法|编译|图形学|人机交互|HCI"),
+]
+AI_TRUE_BUCKETS = {"LLM/大模型", "CV/NLP经典", "机器人/具身", "传统ML/挖掘"}
+
+
+def papers_bucket(field):
+    """direction_scan 论文判读 primary_field -> (分桶, 是否AI)；未命中返回 (None, None) 回落规则层"""
+    lead = (field or "").split("（")[0].split("(")[0]
+    for name, is_ai, pat in PAPERS_RULES:
+        if re.search(pat, lead):
+            return name, is_ai
+    return None, None
+
+
 def load_aux(name):
     p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data_aux", name)
     if os.path.exists(p):
@@ -545,14 +574,29 @@ def main():
             rev_payload.append(item)
         rev_payload.sort(key=lambda r: r.get("date") or "", reverse=True)
 
+        # 分桶与 AI 归属：论文实锚（direction_scan primary_field）> 关键词规则层
+        pb_field = ((pb or {}).get("direction_profile") or {}).get("primary_field")
+        p_bucket, p_ai = papers_bucket(pb_field) if pb_field else (None, None)
+        bucket = p_bucket or dir_bucket_of(r0, areas_txt,
+                                           (a.get("departments") or []) + ([(r0 or {}).get("department")] if r0 and r0.get("department") else []),
+                                           ai.get("tier") if ai else None, bool(q), area_map, dept_map)
+        if p_ai is True:
+            ai_ev = "papers"
+        elif p_ai is False:
+            ai_ev = "no"
+        elif bucket in AI_TRUE_BUCKETS:
+            ai_ev = "rule"
+        else:
+            ai_ev = None
+
         rec = {
             "id": aid_of(uni, sup),
             "supervisor": sup,
             "university": uni,
-            "dir_bucket": dir_bucket_of(r0, areas_txt,
-                                        (a.get("departments") or []) + ([(r0 or {}).get("department")] if r0 and r0.get("department") else []),
-                                        ai.get("tier") if ai else None, bool(q), area_map, dept_map),
+            "dir_bucket": bucket,
+            "ai_ev": ai_ev,
             "departments": a.get("departments") or ([(r0 or {}).get("department")] if r0 and r0.get("department") else []),
+            "joint": r0.get("joint_note") if r0 else None,
             "n_reviews": n_rev,
             "rate_avg": a.get("avg_rate") if (a.get("avg_rate") is not None and a.get("avg_rate") > 0) else None,
             "dates": [a.get("date_min"), a.get("date_max")],
@@ -632,10 +676,12 @@ def main():
         n_done = sum(1 for r in recs if r["research_status"] == "done")
         n_hard = sum(1 for r in recs if r["dropout"]["hard"])
         # ---- 按学科桶统计（用户 2026-10-04：总榜被没出分/跨学科导师拉偏，榜单按学科切） ----
-        bstat = {}
-        for r in recs:
-            b = r["dir_bucket"]
-            d = bstat.setdefault(b, {"n": 0, "scored": 0, "reviews": 0, "csum": 0.0, "neg": 0, "deep": 0})
+        # ai 汇总桶（用户 2026-10-22 收紧口径）：不再合并六个 CS 大类桶，改为论文实锚 AI（ai_ev=papers）
+        # ∪ 名录自报方向归 AI 桶且无论文反证（ai_ev=rule）；论文判读非 AI（no）者不计入。
+        def new_acc():
+            return {"n": 0, "scored": 0, "reviews": 0, "csum": 0.0, "neg": 0, "deep": 0}
+
+        def acc_add(d, r):
             d["n"] += 1
             d["reviews"] += r["n_reviews"]
             if r["basis"] in ("review", "testimony"):
@@ -645,18 +691,21 @@ def main():
                     d["neg"] += 1
             if r["research_status"] == "done":
                 d["deep"] += 1
-        buckets = {b: {"n_advisors": d["n"], "n_scored": d["scored"], "n_reviews": d["reviews"],
-                       "avg_composite": round(d["csum"] / d["scored"], 2) if d["scored"] else None,
-                       "n_negative": d["neg"], "n_deep_done": d["deep"]} for b, d in bstat.items()}
-        AI_BUCKETS = ("LLM/大模型", "CV/NLP经典", "机器人/具身", "传统ML/挖掘", "网络安全/系统", "其他CS方向")
 
-        def merge(sel):
-            s_ = [buckets[b] for b in sel if b in buckets]
-            sc = sum(x["n_scored"] for x in s_)
-            return {"n_advisors": sum(x["n_advisors"] for x in s_), "n_scored": sc,
-                    "n_reviews": sum(x["n_reviews"] for x in s_),
-                    "avg_composite": round(sum(x["avg_composite"] * x["n_scored"] for x in s_ if x["avg_composite"] is not None) / sc, 2) if sc else None,
-                    "n_negative": sum(x["n_negative"] for x in s_), "n_deep_done": sum(x["n_deep_done"] for x in s_)}
+        bstat = {}
+        astat = new_acc()
+        for r in recs:
+            acc_add(bstat.setdefault(r["dir_bucket"], new_acc()), r)
+            if r.get("ai_ev") in ("papers", "rule"):
+                acc_add(astat, r)
+
+        def finalize(d):
+            return {"n_advisors": d["n"], "n_scored": d["scored"], "n_reviews": d["reviews"],
+                    "avg_composite": round(d["csum"] / d["scored"], 2) if d["scored"] else None,
+                    "n_negative": d["neg"], "n_deep_done": d["deep"]}
+
+        buckets = {b: finalize(d) for b, d in bstat.items()}
+        AI_BUCKETS = ("LLM/大模型", "CV/NLP经典", "机器人/具身", "传统ML/挖掘", "AI4科学/交叉", "网络安全/系统", "其他CS方向")
 
         meta = {
             "sid": sid, "name": uni, "cate": cate,
@@ -669,7 +718,7 @@ def main():
             "n_deep_done": n_done,
             "n_profile": n_profile,
             "roster_total": n_roster_by_uni.get(uni),
-            "buckets": buckets, "ai": merge(AI_BUCKETS),
+            "buckets": buckets, "ai": finalize(astat),
         }
         schools.append(meta)
         json.dump(deep_sanitize({"meta": meta, "advisors": recs}),
@@ -728,6 +777,9 @@ def main():
             "deep_a": sum(1 for k, x in qmap.items() if k in deep_keys and x.get("research_status") == "done"),
             "deep_b": sum(1 for k, x in qmap.items() if k in light_keys and x.get("research_status") == "done"),
             "ai_total": len(ai_subset), "intern_constrained": intern_constrained,
+            # AI 口径收紧（2026-10-22）：论文实锚 AI = direction_scan 判读确认；ai_flagged = 论文 ∪ 名录规则确认
+            "ai_papers": sum(1 for r in all_recs if r.get("ai_ev") == "papers"),
+            "ai_flagged": sum(1 for r in all_recs if r.get("ai_ev") in ("papers", "rule")),
         },
         "composite_hist": hist,
         "rate_hist": [{"bin": b, "n": rate_bins[b]} for b in sorted(rate_bins)],

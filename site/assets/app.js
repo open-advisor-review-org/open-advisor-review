@@ -15,7 +15,7 @@ const f1 = (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toFixed(2));
 const FRAG_RE = /<\/?(?:a|b|i|u|s|em|strong|p|br|div|span|img|font|blockquote|h[1-6]|ol|ul|li)(?:\s[^<>]*)?\/?>|<!--[\s\S]*?-->/gi;
 const cleanFrag = (s) => String(s == null ? "" : s).replace(FRAG_RE, "").replace(/\s{2,}/g, " ").trim();
 const cache = {};
-const BUST = "d01880d7";
+const BUST = "94ca8bf8";
 /* 离线单文件模式（build_offline.py 产物）：全部 API 数据以逐文件 gzip+base64 内嵌于
    <script id="offline-data" type="application/json">（data-meta 存版本/生成日/线上地址），
    loadJSON 命中时懒解压——只解压被访问的文件，首屏秒开、内存友好。
@@ -91,6 +91,8 @@ function researchChip(a) {
   return "";
 }
 function aiChip(a) {
+  if (a.ai_ev === "papers") return `<span class="chip ai">AI · 论文实锚</span>`;
+  if (a.ai_ev === "rule") return `<span class="chip ai" style="opacity:.75">AI · 名录方向</span>`;
   if (a.tier === "ai_core") return `<span class="chip ai">AI 核心</span>`;
   if (a.tier === "ai_signal") return `<span class="chip ai" style="opacity:.75">AI 相关</span>`;
   return "";
@@ -441,8 +443,8 @@ async function viewOverview(t) {
 
   const dimRows = DIMS.map(([k, cn]) => ({ label: cn, v: stats.dims_avg[k], tip: "全库该维度均分（1–5）" }));
   const cateKv = Object.entries(stats.cate).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const qDone = T.deep_done, qTotal = T.queue_total, aiTotal = T.ai_total;
-  const qPct = Math.round((qDone / aiTotal) * 100);
+  const qDone = T.deep_done, qTotal = T.queue_total || 1, aiTotal = T.ai_total;
+  const qPct = Math.min(100, Math.round((qDone / qTotal) * 100));
 
   const app = $("#app");
   app.innerHTML = `
@@ -471,25 +473,25 @@ async function viewOverview(t) {
       <div class="sec-h"><span class="bar"></span><span class="zh">数据大盘</span><span class="en">Overview</span><span class="desc">数字和图表出自同一份数据：评价存档、官方名录，加上从某乎/小某书/官方页挖来的最新风评</span></div>
       <div class="kpis">
         <div class="kpi"><div class="lab">${ic("user")} 名录导师</div><div class="num" data-n="${T.roster}">0</div><div class="sub">官方师资页口径 · 已覆盖 ${fmt(T.roster_schools || 0)} 所</div><svg class="spark" aria-hidden="true" width="70" height="24" viewBox="0 0 70 24">${sparkBars([3, 5, 4, 7, 6, 9, 8])}</svg></div>
-        <div class="kpi"><div class="lab">${ic("school")} 覆盖高校</div><div class="num" data-n="${T.schools}">0</div><div class="sub">含港澳与海外院校</div></div>
+        <div class="kpi"><div class="lab">${ic("radar")} AI 方向导师</div><div class="num" data-n="${T.ai_flagged || 0}">0</div><div class="sub">论文实锚确认 ${fmt(T.ai_papers || 0)} 位${T.ai_flagged ? `，其余按官方名录方向确认` : ""}——站上默认聚焦这个口径</div></div>
         <div class="kpi"><div class="lab">${ic("doc")} 原始评价</div><div class="num" data-n="${T.reviews}">0</div><div class="sub">${esc(stats.sources["urfire_2022"] ? "导师评价网+大查查存档" : "公开存档")}</div></div>
         <div class="kpi"><div class="lab">${ic("radar")} 出分导师</div><div class="num" data-n="${T.scored}">0</div><div class="sub">有一条评价就出综合分${T.profile_scored ? `；另有 ${fmt(T.profile_scored)} 位零口碑导师出了 AI 资料初评分` : ""}</div></div>
         <div class="kpi red"><div class="lab">${ic("flag")} 负分评分卡</div><div class="num" data-n="${T.negative}">0</div><div class="sub">多为退学、不放实习类信号</div></div>
-        <div class="kpi"><div class="lab">${ic("check")} 深挖调研完成</div><div class="num" data-n="${T.deep_done}">0</div><div class="sub">目标覆盖 ${fmt(aiTotal)} 位 AI 导师</div></div>
+        <div class="kpi"><div class="lab">${ic("check")} 深挖调研完成</div><div class="num" data-n="${T.deep_done}">0</div><div class="sub">有评价导师全覆盖 · 队列 ${fmt(qTotal)} 位</div></div>
       </div>
       <div class="queue-prog">
-        <span>AI 导师调研覆盖（合计）</span>
+        <span>有评价导师深挖覆盖</span>
         <div class="track"><div class="fill" style="width:0%" data-w="${qPct}"></div></div>
-        <span class="mono" style="font-family:var(--mono)">已完成 ${fmt(qDone)} / ${fmt(aiTotal)} 位（${qPct}%）· 调研报告 ${fmt(T.reports)} 份 · 两批滚动推进</span>
+        <span class="mono" style="font-family:var(--mono)">已完成 ${fmt(qDone)} / ${fmt(qTotal)} 位（${qPct}%）· 调研报告 ${fmt(T.reports)} 份 · 五期全量收官</span>
       </div>
       <div class="queue-prog">
         <span style="min-width:168px">└ 深挖批 · 全网深扒流程</span>
-        <div class="track"><div class="fill" style="width:0%;background:linear-gradient(90deg,#0b5cff,#0b5cff)" data-w="${Math.min(100, Math.round((T.deep_a || 0) / aiTotal * 100))}"></div></div>
+        <div class="track"><div class="fill" style="width:0%;background:linear-gradient(90deg,#0b5cff,#0b5cff)" data-w="${Math.min(100, Math.round((T.deep_a || 0) / qTotal * 100))}"></div></div>
         <span class="mono" style="font-family:var(--mono)">${fmt(T.deep_a || 0)} 位 · 重点导师逐人深调研（官方+学术+风评+实习退学专项）</span>
       </div>
       <div class="queue-prog">
         <span style="min-width:168px">└ 轻调研批 · 快速核查</span>
-        <div class="track"><div class="fill" style="width:0%;background:#7fb0ff" data-w="${Math.min(100, Math.round((T.deep_b || 0) / aiTotal * 100))}"></div></div>
+        <div class="track"><div class="fill" style="width:0%;background:#7fb0ff" data-w="${Math.min(100, Math.round((T.deep_b || 0) / qTotal * 100))}"></div></div>
         <span class="mono" style="font-family:var(--mono)">${fmt(T.deep_b || 0)} 位 · 长尾导师官方确认+风评抽查</span>
       </div>
     </section>
@@ -547,7 +549,7 @@ async function viewOverview(t) {
 async function viewSchools(t) {
   const schools = await loadJSON(API + "schools.json");
   if (t !== routeToken) return;
-  const BUCKETS = ["LLM/大模型", "CV/NLP经典", "机器人/具身", "传统ML/挖掘", "网络安全/系统", "其他CS方向", "电子信息/通信", "自动化/控制", "其他学科（非AI）"];
+  const BUCKETS = ["LLM/大模型", "CV/NLP经典", "机器人/具身", "传统ML/挖掘", "AI4科学/交叉", "网络安全/系统", "其他CS方向", "电子信息/通信", "自动化/控制", "其他学科（非AI）"];
   const bucketChips = [["ai", "AI 方向汇总"], ...BUCKETS.map((b) => [b, b])];
   const rankModes = [
     ["reviews", "按评价量"], ["scored", "按出分规模"], ["avg", "按平均分"], ["neg", "按负分卡数"],
@@ -617,7 +619,7 @@ async function viewSchools(t) {
             <tbody id="rankBody"></tbody>
           </table>
         </div>
-        <div style="font-size:12px;color:var(--faint);margin-top:10px">「AI 方向汇总」只统计六个 AI 相关学科（LLM / CV·NLP / 机器人 / 传统ML / 网安 / 其他CS）的导师；均分排序只收至少 3 位出分导师的学校，样本太少的均分不作数。数字都只算当前所选学科，点学校进去可再按方向筛人。</div>
+        <div style="font-size:12px;color:var(--faint);margin-top:10px">「AI 方向汇总」按论文实锚口径统计：AI 读了导师近 5 年论文、确认研究方向属于 AI 的计入（论文实锚）；没有论文判读的，按官方名录自报方向归入 AI 学科的也计入；论文判读为非 AI 方向（通信/电子/控制/传统优化等）的老师不计入。均分排序只收至少 3 位出分导师的学校，样本太少的均分不作数。数字都只算当前所选学科，点学校进去可再按方向筛人。</div>
       </div>
     </div>
   </div>`;
@@ -771,7 +773,7 @@ async function viewSchool(sid, t) {
   const deptCount = {};
   list.forEach((x) => { const d = (x.departments || [])[0]; if (d) deptCount[d] = (deptCount[d] || 0) + 1; });
   const deptOpts = Object.entries(deptCount).filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh"));
-  const DIR_ORDER = ["LLM/大模型", "CV/NLP经典", "机器人/具身", "传统ML/挖掘", "网络安全/系统", "其他CS方向", "电子信息/通信", "自动化/控制", "其他学科（非AI）", "未标注"];
+  const DIR_ORDER = ["LLM/大模型", "CV/NLP经典", "机器人/具身", "传统ML/挖掘", "AI4科学/交叉", "网络安全/系统", "其他CS方向", "电子信息/通信", "自动化/控制", "其他学科（非AI）", "未标注"];
   const sorts = [
     ["composite", "综合分 ↓"], ["n", "评价数 ↓"], ["academics", "学术水平 ↓"],
     ["relationship", "师生关系 ↓"], ["stipend", "学生补助 ↓"], ["rate", "网评 rate ↓"], ["flag", "红线信号优先"],
@@ -786,7 +788,7 @@ async function viewSchool(sid, t) {
     if (st.filters.has("neg")) rows = rows.filter((a) => a.composite != null && a.composite < 0);
     if (st.filters.has("hard")) rows = rows.filter((a) => a.dropout.hard);
     if (st.filters.has("report")) rows = rows.filter((a) => a.report || a.synthesis);
-    if (st.filters.has("ai")) rows = rows.filter((a) => a.tier === "ai_core" || a.tier === "ai_signal");
+    if (st.filters.has("ai")) rows = rows.filter((a) => a.ai_ev === "papers" || a.ai_ev === "rule");
     if (st.dir) rows = rows.filter((a) => a.dir_bucket === st.dir);
     if (st.dept) rows = rows.filter((a) => (a.departments || [])[0] === st.dept);
     const key = {
@@ -1079,6 +1081,7 @@ async function viewAdvisor(sid, aid, t) {
         <div class="affil"><b>${esc(a.university)}</b>${(a.departments || []).length ? " · " + esc(a.departments.slice(0, 2).join(" / ")) : ""}${a.roster && a.roster.title ? " · " + esc(a.roster.title) : ""}${a.joint ? ` · <span style="color:var(--sub)">🏫 ${esc(a.joint)}</span>` : ""}</div>
         <div class="adv-tags">
           ${a.dir_bucket ? `<span class="chip ai">${ic("radar", 12)} ${esc(a.dir_bucket)}</span>` : ""}
+          ${a.ai_ev === "papers" ? `<span class="chip ai" title="AI 读了这位导师近 5 年的论文，确认研究方向属于 AI">论文实锚 · AI</span>` : ""}
           ${a.roster && (a.roster.areas || []).length ? a.roster.areas.slice(0, 6).map((x) => `<span class="chip">${esc(x.length > 18 ? x.slice(0, 18) + "…" : x)}</span>`).join("") : ""}
           ${a.roster && a.roster.homepage ? `<a class="chip" href="${esc(a.roster.homepage)}" target="_blank" rel="noopener">${ic("link", 12)} 官方主页</a>` : ""}
           ${a.roster && a.roster.mentor === "phd_supervisor" ? `<span class="chip">${ic("check", 12)} 博导</span>` : ""}

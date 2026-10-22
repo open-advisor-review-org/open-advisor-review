@@ -379,7 +379,18 @@ def main():
     ai_subset = load("ai_subset/advisors_ai.json")           # 4783 AI 子集
     pilot_dir = load("pilot_direction_scores.json")["scores"]
     pilot_adj = load("pilot_signal_adjustments.json")["adjustments"]
-    delay_lv = load("delay_level_20261003.json")
+    delay_lv_raw = load("delay_level_20261003.json")
+    # 校名别名归一（2026-10-22：评价库存档简称/全角括号与名录全称分裂成两页，如「西安电子科大」482 评
+    # 挂在无名录页而「西安电子科技大学」有 1,256 名录；统一到名录侧全称，评价导师才能吃到 roster 层字段）
+    UNI_ALIAS = {"西安电子科大": "西安电子科技大学",
+                 "中国地质大学（武汉）": "中国地质大学(武汉)",
+                 "中国地质大学（北京）": "中国地质大学(北京)"}
+    delay_lv = {UNI_ALIAS.get(k.split("|", 1)[0], k.split("|", 1)[0]) + "|" + k.split("|", 1)[1]: v
+                for k, v in delay_lv_raw.items() if "|" in k}
+    for _lst in (scores, advisors, reviews, roster, ai_subset, pilot_dir, pilot_adj):
+        for _x in _lst:
+            if isinstance(_x, dict) and _x.get("university") in UNI_ALIAS:
+                _x["university"] = UNI_ALIAS[_x["university"]]
     # 调研队列：合并所有批次文件（进度不再冻结在某一期）。
     # 批次语义：一期 batch_queue_20261002 = 深挖批（重点 AI 导师+硬flag 全量，全网深扒流程）；
     # 之后 v2/v3… = 轻调研批（长尾 1-2 评导师，官方确认+风评抽查）。
@@ -391,10 +402,12 @@ def main():
             continue
         light = qname != "batch_queue_20261002.json"
         for x in entries:
+            if isinstance(x, dict) and x.get("university") in UNI_ALIAS:
+                x["university"] = UNI_ALIAS[x["university"]]
             k = (x.get("university"), x.get("supervisor"))
             (light_keys if light else deep_keys).add(k)
             queue.append(x)
-    raw_reports = parse_reports()
+    raw_reports = [(n, UNI_ALIAS.get(u, u), t) for (n, u, t) in parse_reports()]
     area_map = load_aux("area_bucket.json")
     dept_map = load_aux("dept_bucket.json")
     # 英文名导师中文名对照（海外/港澳导师可被中文搜索到，用户 2026-10-07 要求）
@@ -403,6 +416,8 @@ def main():
     hnmap = {}
     if os.path.exists(os.path.join(D, "human_notes.json")):
         for e in json.load(open(os.path.join(D, "human_notes.json"), encoding="utf-8")).get("entries", []):
+            if e["university"] in UNI_ALIAS:
+                e["university"] = UNI_ALIAS[e["university"]]
             hnmap[(e["university"], e["supervisor"])] = e
     report_by_key = lambda uni, sup: match_report(raw_reports, uni, sup)
 
@@ -412,6 +427,9 @@ def main():
     pbs = sorted(f for f in os.listdir(D) if re.match(r"profile_baseline_\d+\.json$", f))
     if pbs:
         pb = json.load(open(os.path.join(D, pbs[-1]), encoding="utf-8"))
+        for _e in pb.get("entries", []):
+            if _e.get("university") in UNI_ALIAS:
+                _e["university"] = UNI_ALIAS[_e["university"]]
         pbmap = {(e["university"], e["supervisor"]): e for e in pb.get("entries", [])}
         print("profile_baseline loaded: %s entries=%d" % (pbs[-1], len(pbmap)))
 

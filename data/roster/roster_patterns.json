@@ -1333,5 +1333,86 @@
   "colleges": {
    "_7单元": "ECE61/CS53/AI&DS33/DASE23/IDS21/Math16/SAAS13"
   }
+ },
+ "西湖大学": {
+  "updated": "2026-10-04",
+  "domain_notes": "无WAF但全站TRS模板+Vue壳：列表页HTML空壳、数据内嵌页面脚本配置（memberList/teamList/personObj），curl直读零渲染；同校四院三套CMS（理院Nuxt/生科医TRS/工院TRS+Vue）；nginx错误页返回500非404且URL大小写敏感（URL以名录字段为准）；westlakefacts静态403→webReader唯一解；邮箱mailto含percent编码全角分号多值+footer通用邮箱噪音；PI制无硕博导口径（mentor_status=teacher）",
+  "colleges": {
+   "_3单元": "工学院AI系28/电子信息系25/理院数学计算4（官网279-304人=全量闭合；生科119/医43对账不入库）"
+  }
+ },
+ "大湾区大学": {
+  "updated": "2026-10-04",
+  "domain_notes": "无WAF；金矿API /searchs/teacher/ 必须带 X-Requested-With: XMLHttpRequest 头否则返回整页壳，pagesize=500一页直出；物质学院详情URL无学院id段（/sz_details/7XX.html）正则易整体漏；详情页缺职称用列表卡片兜底；官方300+ vs 公开名录178差额不可点名（新校未公开主页者）；双聘4组经bio+邮箱双验证合并主院保留",
+  "colleges": {
+   "_1单元": "信息科学技术38（全量）/先进工程15（27中按方向筛入）/理院数学计算10/高研院1（物质50/人文5对账不入库）"
+  }
+ },
+ "深圳理工大学": {
+  "updated": "2026-10-04",
+  "domain_notes": "官网suat-sz.edu.cn（suat.edu.cn不可用）；无WAF静态；⚠CMS双树致同人不同person id——URL去重失效改姓名归并；同站../与../../混用且服务器拒字面路径400——urljoin base必须用列表页自身URL；VSB倒序分页（page2=qb/4.htm）链式跟链；SIAT双建制46%（56人挂siat.ac.cn邮箱）跨建制兼任extra.cross_units；对账源=招生网zs.suat-sz.edu.cn全职导师137精确闭合；李烨×2真实同名两人不合并",
+  "colleges": {
+   "_4单元": "计算机科学与AI 91/生医工44/算力微电子38/AI研究院32（AI交叉建制入库；合成生物39/药学60/材料能源对账不入库）"
+  }
+ },
+ "宁波东方理工大学": {
+  "updated": "2026-10-04",
+  "domain_notes": "无WAF；⚠全校http 80端口超时必须https；列表页JS壳、教师数据走Sudy generalQuery?queryObj=teacherHome 隐藏API（无鉴权POST直通）；⚠API混入CMS测试账号（苏迪测试）与英文副本——锁 language=1&published=1 得98人口径；上交/中科大联培导师表（115人）差集可补无主页者；官网121 PI vs 主页系统98 vs 招生名录83三口径分层",
+  "colleges": {
+   "_1单元": "CS 12/EE 13/数学计算7/待核2（信息学部15精确闭合；物理12/化学15/力机14对账不入库）"
+  }
+ },
+ "福耀科技大学": {
+  "updated": "2026-10-04",
+  "domain_notes": "官网fyust.edu.cn（fyu.edu.cn不可用，别名fyust.org.cn同站）；无WAF静态；VSB倒序分页；../..字面路径被服务器400拒——urljoin归一化；同校三套字段标签（cs职称：/sasci职称职务：/研招卡片p序列）；全角＠与工号/拼音双邮箱并存（变体入extra.email_variants）；官方自报314教师 vs 可见名录147（新校在建期缺口，报告按替代口径声明）",
+  "colleges": {
+   "_1单元": "计算与AI学院20（研招页交叉博导8/硕导7）/文理数学计算1（2025首招新校，智造18/运载20/新材料35/生科20对账不入库）"
+  }
+ },
+ "深圳技术大学": {
+  "updated": "2026-10-04",
+  "domain_notes": "无WAF静态直连；⚠研招目录（gra.zhan.xunzhao类）远大于学院页——085404计算机技术并集86 vs 学院页38，企业/双聘导师56%只按学院页会漏（gra-only 152人extra.gra_only标注）；VSB详情页正文容器v_news_content/vsb_content双形态且裸串会先命中CSS注释（icoc 45人字段曾全空）；逗号名单英文名ZHANG LIJUN按空白切会碎成假人需剥括号别名；博士目录PNG图片型视觉转写（4张）；深技大-希伯来官网无此建制不采信",
+  "colleges": {
+   "_1单元": "AI学院134/工程物理89（gra 085408硕导口径）/集成电路光电49/中德智造25/新代信息研究院6/待核8（硕导228博导18；gra口径与学院页双源对账）"
+  }
+ },
+ "西安邮电大学": {
+  "updated": "2026-10-04",
+  "domain_notes": "主源=研究生院导师库 gr.xupt.edu.cn 静态无WAF（学院官网师资页空壳外链研院库）；同一人跨学院列表各有独立info文章id——URL级1347→姓名+学院去重584；详情页v_news_content嵌套div需平衡计数提取（否则页脚混入方向）；学院名自带顿号与join/split分隔符冲突；姓名零宽空格；VSB倒序分页；间歇SSL瞬断靠done.json断点二遍补齐；硕导/博导口径在extra.roles（merge时映射mentor_status）；崔江涛2026转任本校副校长如实入库不与西电旧档合并",
+  "colleges": {
+   "_1单元": "电子+集电111/通信95/AI+自动化86/计算机55/理学院计算28/网安28（博导50/硕导403；现代邮政118/经管252对账不入库）"
+  }
+ },
+ "上海创智学院": {
+  "updated": "2026-10-04",
+  "domain_notes": "官网sii.edu.cn（非scai）；Sudy站群 _wp3services/generalQuery API配方内嵌页面search.js原文照抄，一请求全量87人（total/返回/详情/入库四方闭合）；API返回http URL需改https（裸http 301 APISIX）；subtitle单位+职称切分按含职称词判定（首版误切6人）；建制特殊：全时导师67/全职16/分时3/兼产业1，本籍机构在extra.home_institution（复旦26/上交15/华师大7等），university独立成档不与本籍校合并；领域三分类为官方粗标签（AI基础理论与科学智能=AI_PAT需扩展词）；招生网JS壳不可作第二源",
+  "colleges": {
+   "_1单元": "学院导师87全量（全时67/全职16/分时3/产业1；具身31/大模型26/AI基础30；兼职产业导师大头官网未列名待扩）"
+  }
+ },
+ "香港中文大学（深圳）": {
+  "updated": "2026-10-04",
+  "domain_notes": "三学院（SSE/SDS/SAI 2025新设）共用Drupal10自研模板；师资检索/teacher-search=views exposed form GET+服务端直出卡片10/页+pager——境内直连200无WAF明文邮箱（港校最好抓形态）；views默认无参数返回空必须?category=<tid>逐类枚举（停止条件=0卡片）；SDS category taxonomy混行政岗(~70 tid含本科辅导主任)按学术职称过滤且academic过滤器错误绑定活动taxonomy（CMS配置bug）→系别只能走详情页学术领域首token；SSE卡片无系别→academic tid枚举建email→系映射回填；zh/en双版同序按位对齐join（email兜底）；混scatter：#混淆邮箱/多邮箱分号粘连；Ming LI×2真实同名两人（邮箱主页履历三重互异）分立保留加same_name_note",
+  "colleges": {
+   "_1单元": "SAI 87/计算机28/智能系统与机器人21/SDS18/运筹17/信通16/应数16/微电子集电14/统计12/能源7/理论数学2（排除140=物质家族51/数学非计算13/无学术分类30/行政33/荣誉4/归并8）"
+  }
+ },
+ "香港科技大学（广州）": {
+  "updated": "2026-10-04",
+  "domain_notes": "枢纽Hub-学域Thrust制；GZ档案站(faculty.hkust-gz.edu.cn)是1522B Vue空壳但逆向app.js得无鉴权JSON API金矿（分页参数pages/size非pageNum/pageSize）；hub/thrust code树内嵌chunk常量（主站缺微电子链接靠树补齐）；⚠facultyType=GZ实为常规全职口径（兼任/双聘被滤），成员资格必须以thrust名录API（无鉴权直通）为准——207=官方并集210−3 Visiting；广/清双聘12人joint_cwb标注（Pan HUI/Lionel NI等）；ACTING_HEAD是单人对象且CMA全空占位；rpg-supervision研究生指导口径401登录墙（roles只收7个thrust head）；全程直连无需代理",
+  "colleges": {
+   "_1单元": "信息枢纽AI47/DSA30/CMA28/IoT22+系统枢纽智交22/机器人16/智造17+功能枢纽微电子25（总览439=全职400+兼任39；跨thrust挂名secondary_thrusts留痕）"
+  }
+ },
+ "上海期智研究院": {
+  "updated": "2026-10-22",
+  "domain_notes": "www.sqz.ac.cn 全站无 WAF、纯服务端渲染可直接抓；官网无独立 PI 名录页，PI 名单藏在科研方向页 /jushen 的 h3 结构里（方向标题与 PI 名同 tag 需按文本区分）；PI 多为清华等校双聘（33/48 已在他校库），纯文本无个人链接；/en/new-pi 是招聘页非名录",
+  "colleges": {
+   "PI 名录": {
+    "entry": "https://www.sqz.ac.cn/jushen",
+    "note": "h3 段落=方向组→PI 序列；吴翼条目已滞后（2026-04 赴 Meta）勿入库"
+   }
+  },
+  "known_gaps": "院网站上无职称/邮箱/个人主页字段，title 只能记 PI； enrich 靠外搜核实"
  }
 }

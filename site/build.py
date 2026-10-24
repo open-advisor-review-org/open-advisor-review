@@ -384,7 +384,10 @@ def main():
     # 挂在无名录页而「西安电子科技大学」有 1,256 名录；统一到名录侧全称，评价导师才能吃到 roster 层字段）
     UNI_ALIAS = {"西安电子科大": "西安电子科技大学",
                  "中国地质大学（武汉）": "中国地质大学(武汉)",
-                 "中国地质大学（北京）": "中国地质大学(北京)"}
+                 "中国地质大学（北京）": "中国地质大学(北京)",
+                 "中国石油大学（北京）": "中国石油大学(北京)",
+                 "中国石油大学（华东）": "中国石油大学(华东)",
+                 "中国矿业大学（北京）": "中国矿业大学(北京)"}
     delay_lv = {UNI_ALIAS.get(k.split("|", 1)[0], k.split("|", 1)[0]) + "|" + k.split("|", 1)[1]: v
                 for k, v in delay_lv_raw.items() if "|" in k}
     for _lst in (scores, advisors, reviews, roster, ai_subset, pilot_dir, pilot_adj):

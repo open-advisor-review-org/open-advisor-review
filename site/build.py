@@ -387,7 +387,9 @@ def main():
                  "中国地质大学（北京）": "中国地质大学(北京)",
                  "中国石油大学（北京）": "中国石油大学(北京)",
                  "中国石油大学（华东）": "中国石油大学(华东)",
-                 "中国矿业大学（北京）": "中国矿业大学(北京)"}
+                 "中国矿业大学（北京）": "中国矿业大学(北京)",
+                 "中国矿业大学(江苏)": "中国矿业大学",
+                 "南洋理工大学": "Nanyang Technological University"}
     delay_lv = {UNI_ALIAS.get(k.split("|", 1)[0], k.split("|", 1)[0]) + "|" + k.split("|", 1)[1]: v
                 for k, v in delay_lv_raw.items() if "|" in k}
     for _lst in (scores, advisors, reviews, roster, ai_subset, pilot_dir, pilot_adj):
